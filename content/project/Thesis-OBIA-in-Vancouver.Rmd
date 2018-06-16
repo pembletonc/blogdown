@@ -1,0 +1,17 @@
+---
+title: "Object-Based Image Analysis"
+description: "Object-Based Image Analysis of Urban Structures and Landcover using very high resolution aerial imagery and LiDAR data"
+author: "Corey Pembleton"
+date: "June 16, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+
+
+

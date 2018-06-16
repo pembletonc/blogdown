@@ -1,0 +1,63 @@
+baseurl = "/"
+title = "Data Dev"
+theme = "ghostwriter"
+languageCode = "en-us"
+copyright = "Corey Pembleton"
+disqusShortname = "XXX"
+googleAnalytics = "XXX"
+
+[Privacy]
+
+[Privacy.disqus]
+    disable = true
+
+[Privacy.googleAnalytics]
+    anonymizeIP = true
+    respectDoNotTrack = true
+    useSessionStorage = false
+
+[Author]
+    name = "Corey Pembleton"
+    profile = "https://google.com/+XXX"
+
+[Taxonomies]
+    tag = "tags"
+
+[Params]
+    intro = true
+    headline = "Data Dev"
+    description = "rstats, evaluation, and international development"
+    github = "https://github.com/pembletonc"
+    linkedin = "https://linkedin.com/in/coreypembleton/"
+    twitter = "https://twitter.com/coreypembleton"
+    email = "cpembleton@universalia.com"
+    shareTwitter = true
+    shareFacebook = false
+    shareGooglePlus = false
+    shareLinkedIn = true
+    dateFormat = "Mon, Jan 2, 2006"
+    highlightJsUrl = ""
+    highlightJsLocalUrl = ""
+
+[Permalinks]
+    post = "/:year/:month/:day/:filename/"
+
+[[menu.main]]
+    name = "Blog"
+    url = "/"
+    weight = 1
+
+[[menu.main]]
+    name = "Projects"
+    url = "/project/"
+    weight = 2
+
+[[menu.main]]
+    name = "CV"
+    url = "/page/cv/"
+    weight = 3
+
+[[menu.main]]
+    name = "About"
+    url = "/page/about/"
+    weight = 4

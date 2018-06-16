@@ -1,0 +1,20 @@
+---
+title: "Canadian Census Profile"
+author: "Corey Pembleton"
+date: "June 16, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Canadian Demographic Profile 2006 - 2015
+
+After thinking of a few different topics, a friend and I decided that it would be interesting to see what kind of data manipulation, analysis and representation would be possible using the very robust Canadian census results datasets. 
+
+
+```{r}
+
+```
+

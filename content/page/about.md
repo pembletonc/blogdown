@@ -1,7 +1,7 @@
 +++
 title = "About"
 date = 2018
-author = "My Name"
+author = "Corey Pembleton"
 description = ""
 +++
 

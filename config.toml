@@ -1,5 +1,5 @@
 baseurl = "/"
-title = "Data Dev"
+title = "Data Break"
 theme = "ghostwriter"
 languageCode = "en-us"
 copyright = "Corey Pembleton"
@@ -25,8 +25,8 @@ googleAnalytics = "XXX"
 
 [Params]
     intro = true
-    headline = "Data Dev"
-    description = "rstats, evaluation, and international development"
+    headline = "Data Break"
+    description = "Analysis: the resolution of anything complex into simple elements"
     github = "https://github.com/pembletonc"
     linkedin = "https://linkedin.com/in/coreypembleton/"
     twitter = "https://twitter.com/coreypembleton"

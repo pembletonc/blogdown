@@ -1,8 +1,8 @@
 +++
 title = "About"
-date = 2015-04-03T02:13:50Z
+date = 2018
 author = "My Name"
-description = "Things about me."
+description = ""
 +++
 
 ## About this blog

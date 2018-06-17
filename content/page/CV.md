@@ -1,19 +1,9 @@
----
-title: "CV"
-author: "Corey Pembleton"
-date: "6/16/2018"
-output: html_document
-
-keywords: RMarkdown, CV
-
-urlcolor: blue
-linkcolor: blue
-
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
++++
+title = "CV"
+date = 2018
+author = "Corey Pembleton"
+description = ""
++++
 
 #EDUCATION
 
@@ -97,8 +87,6 @@ Ongoing technical support for all Key Experts
     * An in-depth examination and assessment of two TA assignments to countries that have joined the Scaling Up Nutrition (SUN) movement
     * Desk review of NI-TAN country documentation
     * Qualitative analysis of interview and survey data
-
-
 
 
 

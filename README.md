@@ -1,2 +1,4 @@
 # blogdown
-Blogdown and Netlify blog
+A blogdown-constructed personal website hosted on Netlify
+
+

@@ -5,16 +5,16 @@ author = "Corey Pembleton"
 description = ""
 +++
 
-#EDUCATION
+# EDUCATION
 
 #### University of Waterloo 
 
-* Master of Environmental Studies (Geomatics) \hfill 2017 
-* Bachelor of Environmental Studies (International Development, honours) \hfill 2015
-* Diploma in Environmental Assessment \hfill 2015
-* Diploma in Excellence in Geographic Information Systems \hfill 2015
+* Master of Environmental Studies (Geomatics) 2017 
+* Bachelor of Environmental Studies (International Development, honours) 2015
+* Diploma in Environmental Assessment  2015
+* Diploma in Excellence in Geographic Information Systems  2015
 
-#EMPLOYMENT
+# EMPLOYMENT
 * January 2017 – July 2017 	GIS Researcher • Institut national de la recherche scientifique, Urbanisation, Culture, Société recherche centre (UCS)
 In a research setting, assisting staff and researchers with a variety of publications, spatial analyses, developing presentation graphics, and covering broader operational topics.
 Development of spatial databases for a multidisciplinary research team on pedestrian and cyclist accidents and their socioeconomic relationship, and the relationship with built urban form and increased prevalence of pedestrian - vehicle accidents.  
@@ -32,7 +32,7 @@ Thesis: project on the analysis of climate change policy and flooding in Vancouv
 
 
 
-#EVALUATIONS
+# EVALUATIONS
 * May 2018 - Present	External Evaluation of Water.org’s New Venture Fund Supported by C&A Foundation Client: C&A Fund  
 Working with a private foundation to assist them in achieving their sustainability goals, this summative evaluation saw our team carry out 7 country field visits around the globe. I performed data collection, analysis and reporting in a more intermediary role throughout this assignment. 
 

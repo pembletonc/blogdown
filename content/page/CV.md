@@ -12,7 +12,6 @@ categories = [
     "CV",
     "R",
 ]
-menu = "main"
 +++
 
 # EDUCATION

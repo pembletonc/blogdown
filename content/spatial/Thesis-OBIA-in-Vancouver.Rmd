@@ -1,16 +1,23 @@
 ---
-title: "Object-Based Image Analysis"
+title: "OBIA in Vancouver"
 description: "Object-Based Image Analysis of Urban Structures and Landcover using very high resolution aerial imagery and LiDAR data"
 author: "Corey Pembleton"
 date: "June 16, 2018"
-output: html_document
+output:
+  blogdown::html_page:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_width: 6
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## 
+# Introduction
+
+## Definitions
 
 
 

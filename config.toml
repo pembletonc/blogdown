@@ -43,21 +43,27 @@ googleAnalytics = "XXX"
     post = "/:year/:month/:day/:filename/"
 
 [[menu.main]]
-    name = "Spatial Analysis"
+    name = "About"
+    url = "/page/about/"
+    weight = 1
+
+[[menu.main]]
+    name = "Spatial"
     url = "/spatial/"
     weight = 2
 
 [[menu.main]]
-    name = "CV"
-    url = "/page/cv/"
-    weight = 4
-
-[[menu.main]]
-    name = "About"
-    url = "/page/about/"
-    weight = 1
-    
-[[menu.main]]
     name = "Development and Evaluation"
     url = "/dev-eval/"
-    weight = 3
+    weight = 3  
+
+[[menu.main]]
+    name = "Random"
+    url = "/random/"
+    weight = 4  
+
+[[menu.main]]
+    name = "CV"
+    url = "/page/cv/"
+    weight = 5
+

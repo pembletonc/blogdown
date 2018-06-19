@@ -1,0 +1,19 @@
+---
+title: "Profiling Ontario"
+author: "Corey Pembleton"
+date: "6/18/2018"
+output:
+  blogdown::html_page:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_width: 6
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Creating a temporal profile of Ontario, Canada using 2006, 2011, and 2016 census data
+
+

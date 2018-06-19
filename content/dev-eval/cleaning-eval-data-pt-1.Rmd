@@ -3,7 +3,6 @@ title: "Evaluation Data Tidying"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_document
-draft: TRUE
 ---
 
 ```{r setup, include=FALSE}

@@ -1,10 +1,15 @@
-baseurl = "https://coreypembleton.netlify.com/"
+baseurl = "/"
 title = "Data Break"
 theme = "ghostwriter"
 languageCode = "en-us"
-copyright = "Corey Pembleton"
 disqusShortname = "XXX"
 googleAnalytics = "XXX"
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+publishdir = "public"
+contentdir = "content"
+layoutdir = "layouts"
+enableEmoji = true
+
 
 [Privacy]
 
@@ -26,7 +31,7 @@ googleAnalytics = "XXX"
 [Params]
     intro = true
     headline = "Data Break"
-    description = ""
+    description = "Data Science, Evaluation and R Stats"
     github = "https://github.com/pembletonc"
     linkedin = "https://linkedin.com/in/coreypembleton/"
     twitter = "https://twitter.com/coreypembleton"
@@ -35,11 +40,17 @@ googleAnalytics = "XXX"
     shareFacebook = false
     shareGooglePlus = false
     shareLinkedIn = true
-    dateFormat = "Mon, Jan 2, 2006"
+    dateform = "Jan 2, 2006"
+    dateformfull = "Mon Jan 2 2006 15:04:05 MST"
+    copyright = "Copyright © 2018 Corey Pembleton"
     highlightJsUrl = ""
     highlightJsLocalUrl = ""
+    highlightjs = true
+    progressively = true
+    share = true
 
 [Permalinks]
+    blog = "blog/:slug/"
     post = "/:year/:month/:day/:filename/"
 
 [[menu.main]]

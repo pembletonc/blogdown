@@ -1,19 +1,65 @@
 ---
-title: "Profiling Ontario"
+title: "Analyzing Canadian Census data, 2006 - 2011"
+description: "Cleaning, wrangling, and modelling"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output:
   blogdown::html_page:
     toc: true
-    toc_depth: 2
-    number_sections: true
-    fig_width: 6
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Creating a temporal profile of Ontario, Canada using 2006, 2011, and 2016 census data
+## Introduction & Problem
+
+The best way to get to know a country and its social, economic, and political makeup is through exploring its census data. This data is a highly valuable and free to access resource on everything socio-economic, such as income, education, immigration, labour force participation, and language, disaggregated at multiple spatial scales and by age, gender, and location. 
+
+Canadian census data is spatially disaggregated at multiple levels, and the analysis required should dictated the most appropriate level to use.
+
+To make the most of this data, it is important to include both its spatial and aspatial components (i.e. data tables), in order for it to be tidy and in a structure which can meet many potential use-cases. To do so, this post will:
+
+1. Extract and export data from .shp to .csv format, and push it to github
+2. Tidy and wrangle
+3. Perform EDA and test correlative assumptions
+
+```{r, message=FALSE}
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+library(sf)
+```
+
+Using the ```rgdal``` and ```tidyverse``` libraries, we can first extract only the tables from six of the main Canadian census tables (Age, Education, Immigration, Language, Marriage, Families and Household, and Mobility) from both the 2006 and 2011 Canadian Censuses. 
+
+```{r}
+##CAN_11_CT_AGE <- as.tibble(readOGR("./CT_Data/2011", "ct_age_total_joined"))
+##CAN_11_CT_EDU <- as.tibble(readOGR("./CT_Data/2011", "ct_edu_total"))
+##CAN_11_CT_IMMI <- as.tibble(readOGR("./CT_Data/2011", "ct_immi_total"))
+##CAN_11_CT_LANG <- as.tibble(readOGR("./CT_Data/2011", "ct_lang_total"))
+##CAN_11_CT_MFH <- as.tibble(readOGR("./CT_Data/2011", "ct_mfh_total"))
+##CAN_11_CT_MOB <- as.tibble(readOGR("./CT_Data/2011", "ct_mob_total"))
+```
+
+following this, the next step is to export and push to github as .csv:
+
+```{r, eval = FALSE}
+mylist <- list(CAN_11_CT_AGE = CAN_11_CT_AGE,
+               CAN_11_CT_EDU = CAN_11_CT_EDU,
+               CAN_11_CT_IMMI = CAN_11_CT_IMMI,
+               CAN_11_CT_LANG = CAN_11_CT_LANG,
+               CAN_11_CT_MFH = CAN_11_CT_MFH,
+               CAN_11_CT_MOB = CAN_11_CT_MOB)
+
+for(i in names(mylist)){
+  write_excel_csv(mylist[[i]], paste0(i, ".csv"))
+}
+```
+
+## Tidy and Wrangle
+
+
+
 
 

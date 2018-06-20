@@ -1,22 +1,54 @@
 ---
-title: "Profiling Ontario"
+title: "Analyzing Canadian Census data, 2006 - 2011"
+description: "Cleaning, wrangling, and modelling"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output:
   blogdown::html_page:
     toc: true
-    toc_depth: 2
-    number_sections: true
-    fig_width: 6
 ---
 
 
 <div id="TOC">
 <ul>
-<li><a href="#creating-a-temporal-profile-of-ontario-canada-using-2006-2011-and-2016-census-data"><span class="toc-section-number">1</span> Creating a temporal profile of Ontario, Canada using 2006, 2011, and 2016 census data</a></li>
+<li><a href="#introduction-problem">Introduction &amp; Problem</a></li>
+<li><a href="#tidy-and-wrangle">Tidy and Wrangle</a></li>
 </ul>
 </div>
 
-<div id="creating-a-temporal-profile-of-ontario-canada-using-2006-2011-and-2016-census-data" class="section level1">
-<h1><span class="header-section-number">1</span> Creating a temporal profile of Ontario, Canada using 2006, 2011, and 2016 census data</h1>
+<div id="introduction-problem" class="section level2">
+<h2>Introduction &amp; Problem</h2>
+<p>The best way to get to know a country and its social, economic, and political makeup is through exploring its census data. This data is a highly valuable and free to access resource on everything socio-economic, such as income, education, immigration, labour force participation, and language, disaggregated at multiple spatial scales and by age, gender, and location.</p>
+<p>Canadian census data is spatially disaggregated at multiple levels, and the analysis required should dictated the most appropriate level to use.</p>
+<p>To make the most of this data, it is important to include both its spatial and aspatial components (i.e. data tables), in order for it to be tidy and in a structure which can meet many potential use-cases. To do so, this post will:</p>
+<ol style="list-style-type: decimal">
+<li>Extract and export data from .shp to .csv format, and push it to github</li>
+<li>Tidy and wrangle</li>
+<li>Perform EDA and test correlative assumptions</li>
+</ol>
+<pre class="r"><code>library(rgdal)
+library(tidyverse)
+library(leaflet)
+library(sf)</code></pre>
+<p>Using the <code>rgdal</code> and <code>tidyverse</code> libraries, we can first extract only the tables from six of the main Canadian census tables (Age, Education, Immigration, Language, Marriage, Families and Household, and Mobility) from both the 2006 and 2011 Canadian Censuses.</p>
+<pre class="r"><code>##CAN_11_CT_AGE &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_age_total_joined&quot;))
+##CAN_11_CT_EDU &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_edu_total&quot;))
+##CAN_11_CT_IMMI &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_immi_total&quot;))
+##CAN_11_CT_LANG &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_lang_total&quot;))
+##CAN_11_CT_MFH &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_mfh_total&quot;))
+##CAN_11_CT_MOB &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_mob_total&quot;))</code></pre>
+<p>following this, the next step is to export and push to github as .csv:</p>
+<pre class="r"><code>mylist &lt;- list(CAN_11_CT_AGE = CAN_11_CT_AGE,
+               CAN_11_CT_EDU = CAN_11_CT_EDU,
+               CAN_11_CT_IMMI = CAN_11_CT_IMMI,
+               CAN_11_CT_LANG = CAN_11_CT_LANG,
+               CAN_11_CT_MFH = CAN_11_CT_MFH,
+               CAN_11_CT_MOB = CAN_11_CT_MOB)
+
+for(i in names(mylist)){
+  write_excel_csv(mylist[[i]], paste0(i, &quot;.csv&quot;))
+}</code></pre>
+</div>
+<div id="tidy-and-wrangle" class="section level2">
+<h2>Tidy and Wrangle</h2>
 </div>

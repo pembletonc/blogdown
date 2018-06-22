@@ -4,11 +4,9 @@ date: "2018-06-16"
 author: "Corey Pembleton"
 description: "homepage"
 ---
-
-<img src="images/corey_1.jpg" style="width:25%; border:10px solid; margin-right: 20px" align="left">
+<img src = "img/corey1.jpg" style="width:40%; border:2px solid; margin-right: 20px" align="left"/>
 
 ## Bienvenue
-
 Hello, and welcome.  
 
 This blog is several things. First and foremost, it is a living journal for the various ways in which I seek to explore how using tools and methods in statistics and data science can be integrated into international development evaluation, urban planning and environmental sustainability.  

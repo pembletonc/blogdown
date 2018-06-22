@@ -7,9 +7,26 @@ description = ""
 
 ## About this blog
 
-This blog is by and large a living document, a work-in-progress of the various ways which my interests of international development, urban planning and spatial analysis intersect with the *R programming language*. You can find all of the source code for everything on the site on my [github page](https://github.com/pembletonc), and given that some content I work on may be confidential, I'll always try to keep my work as open and transparent as possible.   
+This blog is a living document, a work-in-progress of the various ways which my interests of international development, urban planning and spatial analysis intersect with the *R programming language*. You can find all of the source code for everything on the site on my [github page](https://github.com/pembletonc), and linked within each respective post. 
 
-## About Me
+I am highly indebted to the R community for providing the opportunities for self-learning needed to perform pretty much everything on the site, including its very existence. 
 
-Following a short detour at the age of 19 which saw my being deployed to Afghanistan with the Canadian military in 2009 (yes, Canada has a military, and yes, we were in Kandahar, Afghanistan), I was very joyfully accepted into the University of Waterloo's International Development program. It was here I became most interested in the connection between international development, the environment, and urbanism; an interest I continue to build upon today professionally and personally (aren't those two the same thing?). 
+Some of the resources which have been the most influential to me:
+
+### Data Analysis and Manipulation
+
+* [R for Data Science](http://r4ds.had.co.nz/index.html), by [Garret Groleman](https://github.com/garrettgman) & [Hadley Wickham](http://hadley.nz)
+*Learning modern data tidying and management using 'tidy' methods. It features a walk-through guide on data table manipulation, iteration, and how to communicate findings effectively*
+
+### Rmarkdown, blogdown, and Hugo website development
+
+* [blogdown: Creating Websites with R Markdown](https://bookdown.org/yihui/blogdown/), by [Yihui Xie](https://twitter.com/xieyihui), [Amber Thomas](https://amber.rbind.io/) and [Alison Presmanes Hill](https://alison.rbind.io/), all of whom have an abundance of additional resources and insights into website creation in R Markdown.
+
+### Spatial analysis and visualization in R
+
+* [Geocomputation with R](https://bookdown.org/robinlovelace/geocompr/) by [Robin Lovelace](http://t.co/puWMFprmiQ), [Jakub Nowosad](https://t.co/Yn0lBxhpUZ), and [Jannes Muenchow](https://jannes-m.github.io) *A detailed walkthrough with information on how to perform tasks of a traditional GIS within the R ecosystem, with walkthroughs for analysis, map creation and rmarkdown integration of vector and raster spatial computation*
+
+
+
+
 

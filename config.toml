@@ -43,8 +43,14 @@ enableEmoji = true
     dateform = "Jan 2, 2006"
     dateformfull = "Mon Jan 2 2006 15:04:05 MST"
     copyright = "Copyright © 2018 Corey Pembleton"
-    highlightJsUrl = ""
-    highlightJsLocalUrl = ""
+    
+    highlightjsVersion = "9.11.0"
+    highlightjsCDN = "//cdn.bootcss.com"
+    highlightjsLang = ["r", "yaml"]
+    highlightjsTheme = "atom-one-light"
+
+    MathJaxCDN = "//cdn.bootcss.com"
+    MathJaxVersion = "2.7.1"
     highlightjs = true
     progressively = true
     share = true

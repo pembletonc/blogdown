@@ -3,6 +3,7 @@ title: "Toronto Bikeshare Analysis"
 author: "Corey Pembleton"
 date: "6/17/2018"
 output: html_document
+draft: true
 ---
 
 ```{r setup, include=FALSE}

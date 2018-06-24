@@ -9,6 +9,7 @@ output:
     toc_depth: 2
     number_sections: true
     fig_width: 6
+draft: true 
 ---
 
 ```{r setup, include=FALSE}

@@ -1,5 +1,5 @@
 ---
-title: "Analyzing Canadian Census data, 2006 - 2011"
+title: " Making Sense of the Census, 2006 - 2011"
 description: "Cleaning, wrangling, and modelling"
 author: "Corey Pembleton"
 date: "6/18/2018"
@@ -12,13 +12,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction & Problem
+## What is the census and why is this useful?
 
-The best way to get to know a country and its social, economic, and political makeup is through exploring its census data. This data is a highly valuable and free to access resource on everything socio-economic, such as income, education, immigration, labour force participation, and language, disaggregated at multiple spatial scales and by age, gender, and location. 
+The best way to get to know a country and its social, economic, and political makeup is through exploring its census data. The census is a highly valuable, free to access resource on socio-economic data at the national level such as income, education, immigration, labour force participation, and language. It is disaggregated at multiple spatial scales and by age, sex, and location.
 
-Canadian census data is spatially disaggregated at multiple levels, and the analysis required should dictated the most appropriate level to use.
+Making the most of this data requires having an understanding of each topical table, and adequately preparing the data for many analytical purposes.
 
-To make the most of this data, it is important to include both its spatial and aspatial components (i.e. data tables), in order for it to be tidy and in a structure which can meet many potential use-cases. To do so, this post will:
+
 
 1. Extract and export data from .shp to .csv format, and push it to github
 2. Tidy and wrangle

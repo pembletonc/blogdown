@@ -65,8 +65,8 @@ enableEmoji = true
     weight = 1
 
 [[menu.main]]
-    name = "Spatial"
-    url = "/spatial/"
+    name = "Space and Stats"
+    url = "/space-stats/"
     weight = 2
 
 [[menu.main]]

@@ -1,15 +1,15 @@
 ---
 title: " Making Sense of the Census, 2006 - 2011"
-description: "Cleaning, wrangling, and modelling"
+description: "Part 1: Creating the dataset"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output:
   blogdown::html_page:
-    toc: true
+    toc: false
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 ## What is the census and why is this useful?
@@ -18,31 +18,35 @@ The best way to get to know a country and its social, economic, and political ma
 
 Making the most of this data requires having an understanding of each topical table, and adequately preparing the data for many analytical purposes.
 
-
-
-1. Extract and export data from .shp to .csv format, and push it to github
-2. Tidy and wrangle
-3. Perform EDA and test correlative assumptions
+For reproducibility, this analysis will be broken down in two posts, this one, which isn't reproducible, and a [second](www.example.com) which is. In this post, I will convert census .shp files from my local harddrive into .csv, and push them to github.  
 
 ```{r, message=FALSE}
 library(rgdal)
 library(tidyverse)
-library(leaflet)
-library(sf)
 ```
 
-Using the ```rgdal``` and ```tidyverse``` libraries, we can first extract only the tables from six of the main Canadian census tables (Age, Education, Immigration, Language, Marriage, Families and Household, and Mobility) from both the 2006 and 2011 Canadian Censuses. 
+Using the ```rgdal``` and ```tidyverse``` libraries, we can first extract only the tables (due to the shapefiles being too large) from six of the main Canadian census tables (Age, Education, Immigration, Language, Marriage, Families and Household, and Mobility) from both the 2006 and 2011 Canadian Censuses. 
 
-```{r}
-##CAN_11_CT_AGE <- as.tibble(readOGR("./CT_Data/2011", "ct_age_total_joined"))
-##CAN_11_CT_EDU <- as.tibble(readOGR("./CT_Data/2011", "ct_edu_total"))
-##CAN_11_CT_IMMI <- as.tibble(readOGR("./CT_Data/2011", "ct_immi_total"))
-##CAN_11_CT_LANG <- as.tibble(readOGR("./CT_Data/2011", "ct_lang_total"))
-##CAN_11_CT_MFH <- as.tibble(readOGR("./CT_Data/2011", "ct_mfh_total"))
-##CAN_11_CT_MOB <- as.tibble(readOGR("./CT_Data/2011", "ct_mob_total"))
+
+Create tibbles from the shapefiles using ```as.tibble()``` and ```readOGR()```
+```{r, eval=FALSE, tidy=TRUE}
+
+CAN_06_CT_AGE <- as.tibble(readOGR("./CT_Data/2006", "AgeSex_CT_CAN"))
+CAN_06_CT_EDU <- as.tibble(readOGR("./CT_Data/2006", "Labour_Occupation_Education_CT_CAN"))
+CAN_06_CT_IMMI <- as.tibble(readOGR("./CT_Data/2006", "Language_Immigration_Citizenship_CT_CAN"))
+CAN_06_CT_MFH <- as.tibble(readOGR("./CT_Data/2006", "Marital_Families_Households_CT_CAN"))
+CAN_06_CT_ETH <- as.tibble(readOGR("./CT_Data/2006", "Ethnic_Origins_Minorities_CT_CAN"))
+CAN_06_CT_FN <- as.tibble(readOGR("./Ct_Data/2006", "Aboriginal_CT_CAN"))
+CAN_06_CT_INC <- as.tibble(readOGR("./Ct_Data/2006", "Income_Earnings_CT_CAN"))
+CAN_11_CT_AGE <- as.tibble(readOGR("./CT_Data/2011", "ct_age_total_joined"))
+CAN_11_CT_EDU <- as.tibble(readOGR("./CT_Data/2011", "ct_edu_total"))
+CAN_11_CT_IMMI <- as.tibble(readOGR("./CT_Data/2011", "ct_immi_total"))
+CAN_11_CT_LANG <- as.tibble(readOGR("./CT_Data/2011", "ct_lang_total"))
+CAN_11_CT_MFH <- as.tibble(readOGR("./CT_Data/2011", "ct_mfh_total"))
+CAN_11_CT_MOB <- as.tibble(readOGR("./CT_Data/2011", "ct_mob_total"))
 ```
 
-following this, the next step is to export and push to github as .csv:
+Create an export list for processing. Data can be found pushed to [this](https://github.com/pembletonc/Canada_Demographic_Analysis) repository. 
 
 ```{r, eval = FALSE}
 mylist <- list(CAN_11_CT_AGE = CAN_11_CT_AGE,
@@ -50,16 +54,22 @@ mylist <- list(CAN_11_CT_AGE = CAN_11_CT_AGE,
                CAN_11_CT_IMMI = CAN_11_CT_IMMI,
                CAN_11_CT_LANG = CAN_11_CT_LANG,
                CAN_11_CT_MFH = CAN_11_CT_MFH,
-               CAN_11_CT_MOB = CAN_11_CT_MOB)
+               CAN_11_CT_MOB = CAN_11_CT_MOB
+               CAN_06_CT_AGE = CAN_06_CT_AGE,
+               CAN_06_CT_EDU = CAN_06_CT_EDU,
+               CAN_06_CT_IMMI = CAN_06_CT_IMMI,
+               CAN_06_CT_MFH = CAN_06_CT_MFH,
+               CAN_06_CT_ETH = CAN_06_CT_ETH,
+               CAN_06_CT_INC = CAN_06_CT_INC,
+               CAN_06_CT_FN = CAN_06_CT_FN)
 
 for(i in names(mylist)){
   write_excel_csv(mylist[[i]], paste0(i, ".csv"))
 }
 ```
 
-## Tidy and Wrangle
 
-
+That's all for now! Check out the next post where the actual magic happens. 
 
 
 

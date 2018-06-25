@@ -1,0 +1,72 @@
+---
+title: " Making Sense of the Census, 2006 - 2011"
+description: "Part 2: Tidy and Wrangle"
+author: "Corey Pembleton"
+date: "6/24/2018"
+output:
+  blogdown::html_page:
+    toc: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+bytes <- file.size("profiling-ontario-pt-2.Rmd")
+words <- bytes/10
+minutes <- words/200
+
+```
+Reading Time: `r round(minutes)` minutes  
+
+
+## Purpose
+
+Before I perform any data tidying, processing and manipulation, I always keep the purpose of the analysis in the front of my mind. For this project, the main purpose is to create a dataset which:  
+
+* Combines the 2006 and 2011 census tables of each respective socio-economic component
+* Reduces redundancy
+* Follows the dictums of the tidy data principles
+
+### Canadian Census Descriptions
+A good place to start, is by getting to know the data, inside and out, and a good question when working with any census data is knowing the unit which is best suited to the analysis.  
+
+The Canadian census is divided into [four census geographic units](https://www150.statcan.gc.ca/n1/pub/92-195-x/2011001/other-autre/hierarch/h-eng.htm), from the top-down: Provinces and Territories, Census Divisions, Census Subdivisions (roughly a municipality), and Dissimination Areas (population of 400-700). There are also *specially-defined geographic units*, which include census metropolitan areas (areas with an urban core of at least 100,000), census agglomerations (population between 10,000-100,000), Census Tracts (CT) (population between 2,500 and 8,000, only in areas with a population greater than 50,000) population centres, designated places, and localities (fig. 1). All of these units connect with common keys, and hence are excellent for use in relational database management systems (RDBMS), and for practicing working with them. 
+
+
+![Hierarchy of standard geographic units for dissemination, 2011 Census](/img/census-profile1.jpg)
+
+
+```{r, echo=FALSE, message = FALSE, warning=FALSE}
+library(kableExtra)
+library(tidyverse)
+
+Desc <- tibble(Table = c("2011 Age and Income","2011 Education and Labour","2011 Immigration", "2011 Language",
+               "2011 Marriage, Family, and Household", "2011 Mobility", "2006 Age", "2006 Education", "2006 Ethnicity", "2006 First Nations", "2006 Immigration", "2006 Income", "2006 Marriage, Family and Household"),
+               
+               Description = c("Total population in CTs across Canada and income levels","Level of education in CTs, disaggregated by education level, employment status and labour type","Immigration and Ethnic Diversity, including generational information", "All language spoken in households", "Marriage, dwelling, and housing type and status", "Mobility status disaggregated by migration and moving status", "Total population in CTs across Canada and income levels","Level of education in CTs, disaggregated by education level", "2006 Education", "2006 Ethnicity", "2006 First Nations", "2006 Immigration", "2006 Income", "2006 Marriage, Family and Household"))
+
+```
+
+In total, I have assembled 13 census tables derived from shapefiles, 7 from 2006 and 6 from 2011. Both table sets contain descriptive information, such as census identifier fields and the specific variables relevent to their topic (Table 1). 
+
+```{r, echo=FALSE, message=FALSE}
+
+kable(Desc, caption = "2006 and 2011 Census Data Descriptions According to Data Dictionary") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "100%", height = "300px")
+
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+CAN_06_INC <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_INC.csv")
+
+```
+
+
+## Tidying
+
+
+
+

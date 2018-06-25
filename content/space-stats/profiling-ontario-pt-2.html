@@ -20,7 +20,7 @@ output:
 </ul>
 </div>
 
-<p>Reading Time: 2 minutes</p>
+<p>Reading Time: 3 minutes</p>
 <div id="purpose" class="section level2">
 <h2>Purpose</h2>
 <p>Before I perform any data tidying, processing and manipulation, I always keep the purpose of the analysis in the front of my mind. For this project, the main purpose is to create a dataset which:</p>
@@ -64,10 +64,10 @@ Total population in CTs across Canada and income levels
 </tr>
 <tr>
 <td style="text-align:left;">
-2011 Education
+2011 Education and Labour
 </td>
 <td style="text-align:left;">
-Level of education in CTs, disaggregated by education level
+Level of education in CTs, disaggregated by education level, employment status and labour type
 </td>
 </tr>
 <tr>
@@ -91,7 +91,7 @@ All language spoken in households
 2011 Marriage, Family, and Household
 </td>
 <td style="text-align:left;">
-2011 Marriage, Family, and Household
+Marriage, dwelling, and housing type and status
 </td>
 </tr>
 <tr>
@@ -99,7 +99,7 @@ All language spoken in households
 2011 Mobility
 </td>
 <td style="text-align:left;">
-2011 Mobility
+Mobility status disaggregated by migration and moving status
 </td>
 </tr>
 <tr>
@@ -107,7 +107,7 @@ All language spoken in households
 2006 Age
 </td>
 <td style="text-align:left;">
-2006 Age
+Total population in CTs across Canada and income levels
 </td>
 </tr>
 <tr>
@@ -115,7 +115,7 @@ All language spoken in households
 2006 Education
 </td>
 <td style="text-align:left;">
-2006 Education
+Level of education in CTs, disaggregated by education level
 </td>
 </tr>
 <tr>
@@ -123,7 +123,7 @@ All language spoken in households
 2006 Ethnicity
 </td>
 <td style="text-align:left;">
-2006 Ethnicity
+Disaggregated population statistics on level of education
 </td>
 </tr>
 <tr>
@@ -131,7 +131,7 @@ All language spoken in households
 2006 First Nations
 </td>
 <td style="text-align:left;">
-2006 First Nations
+Immigration and Ethnic Diversity, including generational information
 </td>
 </tr>
 <tr>
@@ -139,7 +139,7 @@ All language spoken in households
 2006 Immigration
 </td>
 <td style="text-align:left;">
-2006 Immigration
+Total population, disaggregated by Aboriginal Identity
 </td>
 </tr>
 <tr>
@@ -147,7 +147,7 @@ All language spoken in households
 2006 Income
 </td>
 <td style="text-align:left;">
-2006 Income
+Income levels, by gender, median and mean calculations
 </td>
 </tr>
 <tr>
@@ -155,7 +155,7 @@ All language spoken in households
 2006 Marriage, Family and Household
 </td>
 <td style="text-align:left;">
-2006 Marriage, Family and Household
+2006 Marriage, dwelling, and housing type and status
 </td>
 </tr>
 </tbody>
@@ -165,4 +165,44 @@ All language spoken in households
 </div>
 <div id="tidying" class="section level2">
 <h2>Tidying</h2>
+<p>Now that we know what the data consists of, we can start processing, starting with tidying up the data. While the data is impressively detailed, it is also TOO detailed for what our database will require. For example, there are 513 variables in a single dataset :</p>
+<pre class="r"><code>head(CAN_06_INC, 3)</code></pre>
+<pre><code>## # A tibble: 3 x 513
+##   CTUID      CMAUID PRUID CT_UID     OID_ GEOGRAPHY POPULATION POPULATIO1
+##   &lt;chr&gt;      &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;          &lt;dbl&gt;      &lt;dbl&gt;
+## 1 0010001.00 001       10 001000100     0 001000100       2162       2004
+## 2 0010002.00 001       10 001000200     1 001000200       5081       4942
+## 3 0010003.01 001       10 001000301     2 001000301       4843       4586
+## # ... with 505 more variables: POPULATI2 &lt;dbl&gt;, LAND_AREA_ &lt;dbl&gt;,
+## #   TOTAL_POPU &lt;dbl&gt;, MALE_TOTAL &lt;dbl&gt;, FEMALE_TOT &lt;dbl&gt;,
+## #   TOTAL_INCO &lt;dbl&gt;, WITHOUT_IN &lt;int&gt;, WITH_INCOM &lt;dbl&gt;,
+## #   UNDER_1_00 &lt;int&gt;, X1_000_TO_2 &lt;int&gt;, X3_000_TO_4 &lt;int&gt;,
+## #   X5_000_TO_6 &lt;int&gt;, X7_000_TO_9 &lt;int&gt;, X10_000_TO_ &lt;int&gt;,
+## #   X12_000_TO_ &lt;int&gt;, X15_000_TO_ &lt;int&gt;, X20_000_TO_ &lt;int&gt;,
+## #   X25_000_TO_ &lt;int&gt;, X30_000_TO_ &lt;int&gt;, X35_000_TO_ &lt;int&gt;,
+## #   X40_000_TO_ &lt;int&gt;, X45_000_TO_ &lt;int&gt;, X50_000_TO_ &lt;int&gt;,
+## #   X60_000_AND &lt;int&gt;, MEDIAN_INC &lt;dbl&gt;, AVERAGE_IN &lt;dbl&gt;,
+## #   STANDARD_E &lt;int&gt;, TOTAL_INC1 &lt;dbl&gt;, WITHOUT_I1 &lt;int&gt;,
+## #   WITH_INCO1 &lt;dbl&gt;, UNDER_1_01 &lt;int&gt;, X1_000_TO_1 &lt;int&gt;,
+## #   X3_000_TO_1 &lt;int&gt;, X5_000_TO_1 &lt;int&gt;, X7_000_TO_1 &lt;int&gt;,
+## #   X10_000_TO1 &lt;int&gt;, X12_000_TO1 &lt;int&gt;, X15_000_TO1 &lt;int&gt;,
+## #   X20_000_TO1 &lt;int&gt;, X25_000_TO1 &lt;int&gt;, X30_000_TO1 &lt;int&gt;,
+## #   X35_000_TO1 &lt;int&gt;, X40_000_TO1 &lt;int&gt;, X45_000_TO1 &lt;int&gt;,
+## #   X50_000_TO1 &lt;int&gt;, X60_000_AN1 &lt;int&gt;, MEDIAN_IN1 &lt;dbl&gt;,
+## #   AVERAGE_I1 &lt;dbl&gt;, STANDARD_1 &lt;int&gt;, TOTAL_IN2 &lt;dbl&gt;, WITHOUT_2 &lt;int&gt;,
+## #   WITH_INC2 &lt;dbl&gt;, UNDER_1_2 &lt;int&gt;, X1_000_TO2 &lt;int&gt;, X3_000_TO2 &lt;int&gt;,
+## #   X5_000_TO2 &lt;int&gt;, X7_000_TO2 &lt;int&gt;, X10_000_T2 &lt;int&gt;,
+## #   X12_000_T2 &lt;int&gt;, X15_000_T2 &lt;int&gt;, X20_000_T2 &lt;int&gt;,
+## #   X25_000_T2 &lt;int&gt;, X30_000_T2 &lt;int&gt;, X35_000_T2 &lt;int&gt;,
+## #   X40_000_T2 &lt;int&gt;, X45_000_T2 &lt;int&gt;, X50_000_T2 &lt;int&gt;,
+## #   X60_000_A2 &lt;int&gt;, MEDIAN_I2 &lt;dbl&gt;, AVERAGE_2 &lt;int&gt;, STANDARD2 &lt;int&gt;,
+## #   TOTAL_AFTE &lt;dbl&gt;, WITHOUT_AF &lt;int&gt;, WITH_AFTER &lt;dbl&gt;, UNDER_1_3 &lt;int&gt;,
+## #   X1_000_TO3 &lt;int&gt;, X3_000_TO3 &lt;int&gt;, X5_000_TO3 &lt;int&gt;,
+## #   X7_000_TO3 &lt;int&gt;, X10_000_T3 &lt;int&gt;, X12_000_T3 &lt;int&gt;,
+## #   X15_000_T3 &lt;int&gt;, X20_000_T3 &lt;int&gt;, X25_000_T3 &lt;int&gt;,
+## #   X30_000_T3 &lt;int&gt;, X35_000_T3 &lt;int&gt;, X40_000_T3 &lt;int&gt;,
+## #   X45_000_T3 &lt;int&gt;, X50_000_AND &lt;int&gt;, MEDIAN_AFT &lt;dbl&gt;,
+## #   AVERAGE_AF &lt;int&gt;, STANDARD3 &lt;dbl&gt;, AFTER_TAX_ &lt;dbl&gt;, WITHOUT_A1 &lt;int&gt;,
+## #   WITH_AFTE1 &lt;dbl&gt;, UNDER_1_4 &lt;int&gt;, X1_000_TO4 &lt;int&gt;, X3_000_TO4 &lt;int&gt;,
+## #   X5_000_TO4 &lt;int&gt;, X7_000_TO4 &lt;int&gt;, ...</code></pre>
 </div>

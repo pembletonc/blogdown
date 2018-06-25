@@ -41,31 +41,48 @@ The Canadian census is divided into [four census geographic units](https://www15
 library(kableExtra)
 library(tidyverse)
 
-Desc <- tibble(Table = c("2011 Age and Income","2011 Education and Labour","2011 Immigration", "2011 Language",
-               "2011 Marriage, Family, and Household", "2011 Mobility", "2006 Age", "2006 Education", "2006 Ethnicity", "2006 First Nations", "2006 Immigration", "2006 Income", "2006 Marriage, Family and Household"),
+Desc <- tibble(Table = c("2011 Age and Income","2011 Education and Labour","2011 Immigration", "2011 Language", "2011 Marriage, Family, and Household", "2011 Mobility", "2006 Age", "2006 Education", "2006 Ethnicity", "2006 First Nations", "2006 Immigration", "2006 Income", "2006 Marriage, Family and Household"),
                
-               Description = c("Total population in CTs across Canada and income levels","Level of education in CTs, disaggregated by education level, employment status and labour type","Immigration and Ethnic Diversity, including generational information", "All language spoken in households", "Marriage, dwelling, and housing type and status", "Mobility status disaggregated by migration and moving status", "Total population in CTs across Canada and income levels","Level of education in CTs, disaggregated by education level", "2006 Education", "2006 Ethnicity", "2006 First Nations", "2006 Immigration", "2006 Income", "2006 Marriage, Family and Household"))
+               Description = c("Total population in CTs across Canada and income levels","Level of education in CTs, disaggregated by education level, employment status and labour type","Immigration and Ethnic Diversity, including generational information", "All language spoken in households", "Marriage, dwelling, and housing type and status", "Mobility status disaggregated by migration and moving status", "Total population in CTs across Canada and income levels","Level of education in CTs, disaggregated by education level", "Disaggregated population statistics on level of education", "Immigration and Ethnic Diversity, including generational information", "Total population, disaggregated by Aboriginal Identity", "Income levels, by gender, median and mean calculations", "2006 Marriage, dwelling, and housing type and status"))
 
 ```
 
 In total, I have assembled 13 census tables derived from shapefiles, 7 from 2006 and 6 from 2011. Both table sets contain descriptive information, such as census identifier fields and the specific variables relevent to their topic (Table 1). 
 
 ```{r, echo=FALSE, message=FALSE}
-
 kable(Desc, caption = "2006 and 2011 Census Data Descriptions According to Data Dictionary") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
   scroll_box(width = "100%", height = "300px")
 
 ```
 
+## Tidying
 
-```{r, echo=FALSE, eval=FALSE}
-CAN_06_INC <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_INC.csv")
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE, include=FALSE}
+CAN_06_AGE <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_AGE.csv")
+CAN_06_EDU <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_EDU.csv")
+CAN_06_ETH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_ETH.csv")
+CAN_06_FN <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_ETH.csv")
+CAN_06_IMMI <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_IMMI.csv")
+CAN_06_INC <-read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_INC.csv") 
+CAN_06_MFH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_MFH.csv")
+
+CAN_11_AGE <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_AGE.csv")
+CAN_11_EDU <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_EDU.csv")
+CAN_11_LANG <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_LANG.csv")
+CAN_11_MFH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MFH.csv")
+CAN_11_MOB <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MOB.csv")
 
 ```
 
+Now that we know what the data consists of, we can start processing, starting with tidying up the data. While the data is impressively detailed, it is also TOO detailed for what our database will require. For example, there are 513 variables in a single dataset :
 
-## Tidying
+```{r}
+head(CAN_06_INC, 3)
+``` 
+
+
 
 
 

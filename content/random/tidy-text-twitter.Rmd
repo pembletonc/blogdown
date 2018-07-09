@@ -3,12 +3,152 @@ title: "Analyzing Twitter Data in R"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_document
+draft: true 
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Analyzing Twitter Data in R
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(twitteR)
+library(tidytext)
+library(tidyverse)
+library(graphTweets)
+library(kableExtra)
+
+bytes <- file.size("tidy-text-twitter.Rmd")
+words <- bytes/10
+minutes <- words/200
+
+```
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+tweets <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/tweets.csv")
+
+```
+
+Reading Time: `r round(minutes)` minutes  
+
+
+## Tidying Twitter Data with Tidytext and twitteR
+
+An interesting way to learn to work with string and qualitative data is using the ```twitteR```, ``` tidyverse```, and ```tidytext``` packages. This post isn't looking to solve some kind of existential question on human interaction, just to explore and see how sentiment analysis and tidytext can be used with social media data, and more importantly to learn a bit about this type of analysis. 
+
+We've seen a complete and utter exhaustion of sentiment analyses showing that Trump's tweets are racist, negative, hate-filled, and are full of his longest lasting legacy piece, lies. So instead, I'd like to see what leaders around the world are saying in their tweets, and if there's any difference in their tones.  
+When I started doing some research into this, I found that there is a [severe lack of gender equality between social media "influencers"](https://www.newstatesman.com/politics/feminism/2017/12/why-are-women-politics-less-authoritative-twitter-because-men-are-less), and that both men and women retweet and interact with male politicians and political journalists far more (5 times more) than their female counterparts. As such, I can't only use "top influential politician lists", such as [this 'twiplomacy' list](https://twiplomacy.com/ranking/50-world-leaders-interactions-twitter/) of world leaders with the most twitter interactions, so I will be much more selective to attain gender parity in the analysis.
+
+```{r, echo=FALSE}
+
+Leaders <- tribble(
+  ~Name, ~`# of interactions / followers`, ~Country, ~Username,
+  #----/---------------------/--------
+  "N. Modi", 42000000, "India", "PMOIndia",
+  "Pope Francis", 14000000, "Vatican", "Pontifex",
+  "R.T. Ergodan", 13000000, "Turkey", "RT_Erdogan",
+  "J. Trudeau", 7000000, "Canada", "JustinTrudeau",
+  "E. Macron", 7000000, "France", "EmmanuelMacron",
+  "S. Swaraj", 2000000, "India", "SushmaSwaraj",
+  "M. Bachlete", 713000, "Chile", "mbachelet",
+  "T. May", 560000, "United Kingdom", "theresa_may",
+  "R.L. Abdullah",10900000 ,"Jordan" ,"QueenRania",
+  "C. Kirchner", "5380000", "Argentina", "CFKArgentina"
+  )
+```
+
+```{r, echo=FALSE, message=FALSE}
+kable(Leaders)
+```
+
+Mining their tweets and converting into a useful tibble is smooth process with the ``` twitteR``` package: 
+
+```{r, eval=FALSE}
+#Username <-  as.list(Leaders$Username)
+
+#x <- lapply(Username[1:10], function(x) userTimeline(x, n = 500, includeRts = FALSE))
+
+#y <- lapply(x, function(x) twListToDF(x))
+#tweets <- tibble()
+#for(n in 1:10){
+#  tweets <- rbind(tweets, y[[n]])
+#}
+```
+
+With the tweets collected, we can start the analysis of what the various leaders are saying. My assumption is that they're all sticking to their talking points, and that evaluating any kind of emotion from the tweets will be fairly inaccurate as machines aren't so good at this type of text analysis yet.
+
+A first necessary step is looking at the data, which showed me two big issues:
+
+* Tweets are in multiple languages (Hindi, French, Spanish, English)
+* Tweet counts vary widely
+
+
+```{r}
+tweets %>%
+  group_by(screenName) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  kable()
+```
+
+
+
+##Issue 1: multi-lingual tweets from all the laeaders
+
+There is another clear elephant in the ```twitteR``` analysis room: most of the leaders here aren't tweeting in English, and most are tweeting in multiple languages. This brings up a few options: 
+
+1. Use a half-assed computer translation of all the tweets
+2. Change my analysis and select only English-speaking world leaders
+3. Continue with the analysis, and translate the top individual words when needed.
+
+I went with option 3, because once I saw that both ```googleLanguageR``` and ```translateR``` require creating an account complete with credit card, I realized its a task for another day to translate and process the tweets. As an aside, I would love to use ```googleLanguageR``` which can both [detect and translate](https://cran.r-project.org/web/packages/googleLanguageR/vignettes/translation.html), and will explore this in a future post.
+
+##Issue 2: Variation in twitter activity / data collected
+
+Okay, so we can see that there's some pretty large variation between what the leaders are tweeting (when we don't include retweets). I'm not sure if this is because of how the API collects tweets in the list created, the limit per user, or because they all have drastically differing degrees of twitter activity.
+  After testing the download with different amounts (n), I found that it was consistently not collected all tweets from all users when placed in the list, and when downloading individually it brought up the same amount (e.g. Justin Trudeau with only 69 tweets, dating back only to June 20, 2018). I intend to pursue this further, but for now want to get into the bread and butter.
+
+
+#Tidying the tweets
+
+Regardless of the issues within the dataset, there are still some interesting things which can be derived. Following the [tidytext]() principles developed by [Julia Silge]() and [David Robinson](), I first parsed the text to remove stopwords in each of the four languages present (English, French, Spanish and Hindi):
+
+```{r, message=FALSE, warning=FALSE}
+stop_words_en <- stop_words
+
+stop_words_fr <- read_csv("https://raw.githubusercontent.com/stopwords-iso/stopwords-fr/master/stopwords-fr.txt")
+names(stop_words_fr) <- "mots"
+
+stop_words_es <- read_csv("https://raw.githubusercontent.com/stopwords-iso/stopwords-es/master/stopwords-es.txt")
+names(stop_words_es) <- "termino"
+
+stop_words_hn <- read.csv("https://raw.githubusercontent.com/stopwords-iso/stopwords-hi/master/stopwords-hi.txt")
+names(stop_words_hn) <- "शब्द"
+
+```
+
+
+Once set, can bein the anti-joining (or filtering out) process with these stopwords and other letters and unwanted symbols with:
+
+```{r, message=FALSE, warning=FALSE}
+replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https"
+unnest_reg <- "([^A-Za-z_\\d#@']|'(?![A-Za-z_\\d#@]))"
+
+tidy_tweets <- tweets %>% 
+  filter(!str_detect(text, "^RT")) %>%
+  mutate(text = str_replace_all(text, replace_reg, "")) %>%
+  unnest_tokens(word, text, token = "regex", pattern = unnest_reg) %>%
+  filter(!word %in% stop_words$word, str_detect(word, "[a-z]")) %>%
+  filter(!word %in% stop_words_fr$mots, str_detect(word, "[a-z]")) %>%
+  filter(!word %in% stop_words_es$termino, str_detect(word, "[a-z]")) %>%
+  filter(!word %in% stop_words_hn$`शब्द`  , str_detect(word, "[a-z]"))
+
+```
+
+
+
+
+
+
+
 
 

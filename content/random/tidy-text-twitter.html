@@ -3,10 +3,330 @@ title: "Analyzing Twitter Data in R"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_document
+draft: true 
 ---
 
 
 
-<div id="analyzing-twitter-data-in-r" class="section level1">
-<h1>Analyzing Twitter Data in R</h1>
+<p>Reading Time: 4 minutes</p>
+<div id="tidying-twitter-data-with-tidytext-and-twitter" class="section level2">
+<h2>Tidying Twitter Data with Tidytext and twitteR</h2>
+<p>An interesting way to learn to work with string and qualitative data is using the <code>twitteR</code>, <code>tidyverse</code>, and <code>tidytext</code> packages. This post isn’t looking to solve some kind of existential question on human interaction, just to explore and see how sentiment analysis and tidytext can be used with social media data, and more importantly to learn a bit about this type of analysis.</p>
+<p>We’ve seen a complete and utter exhaustion of sentiment analyses showing that Trump’s tweets are racist, negative, hate-filled, and are full of his longest lasting legacy piece, lies. So instead, I’d like to see what leaders around the world are saying in their tweets, and if there’s any difference in their tones.<br />
+When I started doing some research into this, I found that there is a <a href="https://www.newstatesman.com/politics/feminism/2017/12/why-are-women-politics-less-authoritative-twitter-because-men-are-less">severe lack of gender equality between social media “influencers”</a>, and that both men and women retweet and interact with male politicians and political journalists far more (5 times more) than their female counterparts. As such, I can’t only use “top influential politician lists”, such as <a href="https://twiplomacy.com/ranking/50-world-leaders-interactions-twitter/">this ‘twiplomacy’ list</a> of world leaders with the most twitter interactions, so I will be much more selective to attain gender parity in the analysis.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:left;">
+# of interactions / followers
+</th>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:left;">
+Username
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N. Modi
+</td>
+<td style="text-align:left;">
+4.2e+07
+</td>
+<td style="text-align:left;">
+India
+</td>
+<td style="text-align:left;">
+PMOIndia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pope Francis
+</td>
+<td style="text-align:left;">
+1.4e+07
+</td>
+<td style="text-align:left;">
+Vatican
+</td>
+<td style="text-align:left;">
+Pontifex
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R.T. Ergodan
+</td>
+<td style="text-align:left;">
+1.3e+07
+</td>
+<td style="text-align:left;">
+Turkey
+</td>
+<td style="text-align:left;">
+RT_Erdogan
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+J. Trudeau
+</td>
+<td style="text-align:left;">
+7e+06
+</td>
+<td style="text-align:left;">
+Canada
+</td>
+<td style="text-align:left;">
+JustinTrudeau
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+E. Macron
+</td>
+<td style="text-align:left;">
+7e+06
+</td>
+<td style="text-align:left;">
+France
+</td>
+<td style="text-align:left;">
+EmmanuelMacron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S. Swaraj
+</td>
+<td style="text-align:left;">
+2e+06
+</td>
+<td style="text-align:left;">
+India
+</td>
+<td style="text-align:left;">
+SushmaSwaraj
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+M. Bachlete
+</td>
+<td style="text-align:left;">
+713000
+</td>
+<td style="text-align:left;">
+Chile
+</td>
+<td style="text-align:left;">
+mbachelet
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+T. May
+</td>
+<td style="text-align:left;">
+560000
+</td>
+<td style="text-align:left;">
+United Kingdom
+</td>
+<td style="text-align:left;">
+theresa_may
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R.L. Abdullah
+</td>
+<td style="text-align:left;">
+10900000
+</td>
+<td style="text-align:left;">
+Jordan
+</td>
+<td style="text-align:left;">
+QueenRania
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C. Kirchner
+</td>
+<td style="text-align:left;">
+5380000
+</td>
+<td style="text-align:left;">
+Argentina
+</td>
+<td style="text-align:left;">
+CFKArgentina
+</td>
+</tr>
+</tbody>
+</table>
+<p>Mining their tweets and converting into a useful tibble is smooth process with the <code>twitteR</code> package:</p>
+<pre class="r"><code>#Username &lt;-  as.list(Leaders$Username)
+
+#x &lt;- lapply(Username[1:10], function(x) userTimeline(x, n = 500, includeRts = FALSE))
+
+#y &lt;- lapply(x, function(x) twListToDF(x))
+#tweets &lt;- tibble()
+#for(n in 1:10){
+#  tweets &lt;- rbind(tweets, y[[n]])
+#}</code></pre>
+<p>With the tweets collected, we can start the analysis of what the various leaders are saying. My assumption is that they’re all sticking to their talking points, and that evaluating any kind of emotion from the tweets will be fairly inaccurate as machines aren’t so good at this type of text analysis yet.</p>
+<p>A first necessary step is looking at the data, which showed me two big issues:</p>
+<ul>
+<li>Tweets are in multiple languages (Hindi, French, Spanish, English)</li>
+<li>Tweet counts vary widely</li>
+</ul>
+<pre class="r"><code>tweets %&gt;%
+  group_by(screenName) %&gt;%
+  summarise(n = n()) %&gt;%
+  arrange(desc(n)) %&gt;%
+  kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+screenName
+</th>
+<th style="text-align:right;">
+n
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Pontifex
+</td>
+<td style="text-align:right;">
+1628
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EmmanuelMacron
+</td>
+<td style="text-align:right;">
+1248
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PMOIndia
+</td>
+<td style="text-align:right;">
+824
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+mbachelet
+</td>
+<td style="text-align:right;">
+542
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RT_Erdogan
+</td>
+<td style="text-align:right;">
+228
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+QueenRania
+</td>
+<td style="text-align:right;">
+119
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CFKArgentina
+</td>
+<td style="text-align:right;">
+102
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+JustinTrudeau
+</td>
+<td style="text-align:right;">
+69
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+theresa_may
+</td>
+<td style="text-align:right;">
+52
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SushmaSwaraj
+</td>
+<td style="text-align:right;">
+37
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="issue-1-multi-lingual-tweets-from-all-the-laeaders" class="section level2">
+<h2>Issue 1: multi-lingual tweets from all the laeaders</h2>
+<p>There is another clear elephant in the <code>twitteR</code> analysis room: most of the leaders here aren’t tweeting in English, and most are tweeting in multiple languages. This brings up a few options:</p>
+<ol style="list-style-type: decimal">
+<li>Use a half-assed computer translation of all the tweets</li>
+<li>Change my analysis and select only English-speaking world leaders</li>
+<li>Continue with the analysis, and translate the top individual words when needed.</li>
+</ol>
+<p>I went with option 3, because once I saw that both <code>googleLanguageR</code> and <code>translateR</code> require creating an account complete with credit card, I realized its a task for another day to translate and process the tweets. As an aside, I would love to use <code>googleLanguageR</code> which can both <a href="https://cran.r-project.org/web/packages/googleLanguageR/vignettes/translation.html">detect and translate</a>, and will explore this in a future post.</p>
+</div>
+<div id="issue-2-variation-in-twitter-activity-data-collected" class="section level2">
+<h2>Issue 2: Variation in twitter activity / data collected</h2>
+<p>Okay, so we can see that there’s some pretty large variation between what the leaders are tweeting (when we don’t include retweets). I’m not sure if this is because of how the API collects tweets in the list created, the limit per user, or because they all have drastically differing degrees of twitter activity. After testing the download with different amounts (n), I found that it was consistently not collected all tweets from all users when placed in the list, and when downloading individually it brought up the same amount (e.g. Justin Trudeau with only 69 tweets, dating back only to June 20, 2018). I intend to pursue this further, but for now want to get into the bread and butter.</p>
+</div>
+<div id="tidying-the-tweets" class="section level1">
+<h1>Tidying the tweets</h1>
+<p>Regardless of the issues within the dataset, there are still some interesting things which can be derived. Following the <a href="">tidytext</a> principles developed by <a href="">Julia Silge</a> and <a href="">David Robinson</a>, I first parsed the text to remove stopwords in each of the four languages present (English, French, Spanish and Hindi):</p>
+<pre class="r"><code>stop_words_en &lt;- stop_words
+
+stop_words_fr &lt;- read_csv(&quot;https://raw.githubusercontent.com/stopwords-iso/stopwords-fr/master/stopwords-fr.txt&quot;)
+names(stop_words_fr) &lt;- &quot;mots&quot;
+
+stop_words_es &lt;- read_csv(&quot;https://raw.githubusercontent.com/stopwords-iso/stopwords-es/master/stopwords-es.txt&quot;)
+names(stop_words_es) &lt;- &quot;termino&quot;
+
+stop_words_hn &lt;- read.csv(&quot;https://raw.githubusercontent.com/stopwords-iso/stopwords-hi/master/stopwords-hi.txt&quot;)
+names(stop_words_hn) &lt;- &quot;शब्द&quot;</code></pre>
+<p>Once set, can bein the anti-joining (or filtering out) process with these stopwords and other letters and unwanted symbols with:</p>
+<pre class="r"><code>replace_reg &lt;- &quot;https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;amp;|&amp;lt;|&amp;gt;|RT|https&quot;
+unnest_reg &lt;- &quot;([^A-Za-z_\\d#@&#39;]|&#39;(?![A-Za-z_\\d#@]))&quot;
+
+tidy_tweets &lt;- tweets %&gt;% 
+  filter(!str_detect(text, &quot;^RT&quot;)) %&gt;%
+  mutate(text = str_replace_all(text, replace_reg, &quot;&quot;)) %&gt;%
+  unnest_tokens(word, text, token = &quot;regex&quot;, pattern = unnest_reg) %&gt;%
+  filter(!word %in% stop_words$word, str_detect(word, &quot;[a-z]&quot;)) %&gt;%
+  filter(!word %in% stop_words_fr$mots, str_detect(word, &quot;[a-z]&quot;)) %&gt;%
+  filter(!word %in% stop_words_es$termino, str_detect(word, &quot;[a-z]&quot;)) %&gt;%
+  filter(!word %in% stop_words_hn$`शब्द`  , str_detect(word, &quot;[a-z]&quot;))</code></pre>
 </div>

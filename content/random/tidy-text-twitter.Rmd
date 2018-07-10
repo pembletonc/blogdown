@@ -16,6 +16,7 @@ library(tidytext)
 library(tidyverse)
 library(graphTweets)
 library(kableExtra)
+library(lubridate)
 
 bytes <- file.size("tidy-text-twitter.Rmd")
 words <- bytes/10
@@ -144,7 +145,39 @@ tidy_tweets <- tweets %>%
 
 ```
 
+And what this gives me is a word-by-word breakdown of every tweet, with the Pope and French President Macron coming out with the most n-grams. 
 
+```{r}
+tidy_tweets %>%
+  group_by(screenName) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped","responsive", full_width = FALSE, position = "float_right"))
+```
+
+I believe there are several ways to help even this high difference in tweet count (therefor wordcount), by limiting the timeframe, and by grouping the words on a monthly basis.
+
+```{r, echo = FALSE, error=FALSE, warning=FALSE}
+tweets_2018 <- tidy_tweets %>%
+  mutate(time_floor = floor_date(created, unit = "1 month")) %>%
+  mutate(month = ymd(time_floor)) %>%
+  filter(month > "2017-01-01")
+
+ggplot(tweets_2018, aes(x = month, fill = screenName)) +
+  geom_histogram(position = "identity", bins = 20, show.legend = FALSE) +
+  facet_wrap(~screenName, ncol = 2) +
+  theme_bw(base_family = "Lato") +
+  theme(axis.title = element_text(size = 10)) +
+  theme(legend.text = element_text(size = 10)) +
+  theme(legend.title = element_text(size = 10)) +
+  theme(axis.ticks = element_blank())  +
+  theme(panel.border = element_blank()) + 
+  theme(axis.line = element_blank()) +
+  theme(panel.grid = element_blank())+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.7))
+
+```
 
 
 

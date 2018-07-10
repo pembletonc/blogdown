@@ -6,6 +6,7 @@ output: html_document
 draft: true 
 ---
 
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
 <p>Reading Time: 4 minutes</p>
@@ -329,4 +330,107 @@ tidy_tweets &lt;- tweets %&gt;%
   filter(!word %in% stop_words_fr$mots, str_detect(word, &quot;[a-z]&quot;)) %&gt;%
   filter(!word %in% stop_words_es$termino, str_detect(word, &quot;[a-z]&quot;)) %&gt;%
   filter(!word %in% stop_words_hn$`शब्द`  , str_detect(word, &quot;[a-z]&quot;))</code></pre>
+<p>And what this gives me is a word-by-word breakdown of every tweet, with the Pope and French President Macron coming out with the most n-grams.</p>
+<pre class="r"><code>tidy_tweets %&gt;%
+  group_by(screenName) %&gt;%
+  count() %&gt;%
+  arrange(desc(n)) %&gt;%
+  kable() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;,&quot;responsive&quot;, full_width = FALSE, position = &quot;float_right&quot;))</code></pre>
+<table class="table table-striped table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+screenName
+</th>
+<th style="text-align:right;">
+n
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Pontifex
+</td>
+<td style="text-align:right;">
+11440
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EmmanuelMacron
+</td>
+<td style="text-align:right;">
+10097
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+mbachelet
+</td>
+<td style="text-align:right;">
+4974
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PMOIndia
+</td>
+<td style="text-align:right;">
+4941
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RT_Erdogan
+</td>
+<td style="text-align:right;">
+2419
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CFKArgentina
+</td>
+<td style="text-align:right;">
+793
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+JustinTrudeau
+</td>
+<td style="text-align:right;">
+528
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+QueenRania
+</td>
+<td style="text-align:right;">
+455
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+theresa_may
+</td>
+<td style="text-align:right;">
+417
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SushmaSwaraj
+</td>
+<td style="text-align:right;">
+234
+</td>
+</tr>
+</tbody>
+</table>
+<p>I believe there are several ways to help even this high difference in tweet count (therefor wordcount), by limiting the timeframe, and by grouping the words on a monthly basis.</p>
+<p><img src="/random/tidy-text-twitter_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>

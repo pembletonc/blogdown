@@ -23,7 +23,10 @@ Reading Time: `r round(minutes)` minutes
 
 #The thing with messy data....
 
-Working in international development, like many other fields, means being the only person who programs instead of using a spreadsheet software such as Microsoft Excel. This has some clear advantages, like being able to automate tasks and make pretty charts, and some challenges - such as perpetual cleaning of data to make it machine-friendly for easy processing. This post is an example of how to efficiently clean messy excel charts to prepare for future processing.
+Although I dabble in programming, most of my day-to-day tasks as an international development consultant entail working with large quantities of qualitative (e.g. interviews, surveys, documents) data. In  international development, like many other fields, the common tool or data analysis is through using a spreadsheet software such as Microsoft Excel.
+
+
+This has some clear advantages, like being able to automate tasks and make pretty charts, and some challenges - such as perpetual cleaning of data to make it machine-friendly for easy processing. This post is an example of how to efficiently clean messy excel charts in preparation for future processing.
 
 ##
 
@@ -31,37 +34,38 @@ Working in international development, like many other fields, means being the on
 
 ##Clean data is happy data
 
-In this case, I have a several common issues to address:
+For this post, I'm working with a small (<200 rows) dataset of the times which certain organizations were mentioned in African media on topics related to Agriculture. This is the first step of what will be considered a "media content analysis". When I first received the dataset it became apparent that before I could proceed with the content analysis, I would need to address several issues in cleaning it, namely:
 
-1. Multiple empty rows
-2. Names too long, contain non-alphanumeric characters
-3. Dates showing up in excel-numeric format
-4. Typos
+1. Multiple empty rows to be removed
+2. Names are too long, contain non-alphanumeric characters
+3. Dates are showing up in excel-numeric format
+4. Typos in organization names
 5. Multiple pieces of information in a single cell
-6. Empty, but not "NA" cells
+6. Empty, but not "NA" cells  
+
 
 These issues can all be addressed in a single ```dplyr``` pipeline using ```janitor``` and ```lubridate``` for the dates. 
 
 ###1. Remove empty rows
 
-When people work in excel, it is common to leave spaces between rows to make it easier on the eyes, but this unfortunately is inefficient in automated processing.
+When people work in excel, it is common to leave spaces between rows to make it easier on the eyes, but this is inefficient in automated processing.
 
 This:
 ![](/img/Spreadsheet_example.png)
 
 
-Looks like this to a computer:
+...looks like this to a computer:
 
 ![](/img/r-spreadsheet-view.png)
 
-Something which can be easily fixed by removing the "empty" rows as soon as the data is imported with the ```remove_empty()``` function:
+this can be easily fixed by removing the "empty" rows as soon as the data is imported with the ```remove_empty()``` function:
 
 ```{r}
 media <- read_excel("African Media Coverage.xlsx") %>% remove_empty(which = "rows")
 
 ```
 
-Next, changing names to be more analysis-suitable:
+Next, change the names to be more suitable for analysis:
 
 ```{r}
 #change the names to remove spaces and other funny characters
@@ -74,16 +78,16 @@ media <- media %>%
          Mentions = `Organizations Mentioned (Separate by comma)`) 
 ```
   
-Follwoing this, we can remove the pesky excel numeric and convert to Date format using the ```janitor``` ```excel_numeric_to_date()``` function:
+Following these quick fixes, I can remove the pesky excel numeric and convert to Date format using the ```janitor``` ```excel_numeric_to_date()``` function:
 
 ```{r, warning = FALSE, message=FALSE}  
 media <- media %>%
   mutate(Date = excel_numeric_to_date(as.numeric(Date))) 
 ```
 
-Until this point, the tasks completed have been oriented around making the data suitable for R when it was already suitable for human-use in excel. This next stage, makes the data more suitable for both. 
+Up until this point, the tasks completed have been oriented around making the data suitable for R when it was already suitable for human-use in excel. The next stage makes the data more suitable for both.
 
-The column "mentions", which contains human-input instances each time a certain organization was mentioned in a media article, consists of a list of names seperated by a comma. This means that while I could pull out instances where organization names are mentioned using the ```stringr``` ```str_detect()``` function, I couldn't analyze these organizations individually, and there would be double counting, and potentially other errors. 
+The column “mentions”, which contains human-input instances each time a certain organization was mentioned in a media article, consists of a list of names separated by a comma.  This means that while I could pull out instances where organization names are mentioned using the ```stringr``` ```str_detect()``` function, I couldn’t analyze these organizations individually, or guarantee that there was no double counting or  other errors.
 
 To split them, I first separate the column into individual columns using ```separate()```:
 
@@ -93,11 +97,11 @@ media <- media %>%
                               "Org6", "Org7", "Org8", "Org9", "Org10"), sep = ",")
 ```
 
-which results in multiple columns with temporary names, with each column containing the name of one of the organizations mentioned in the article.
+This results in multiple columns with temporary names, with each column containing the name of one of the organizations mentioned in the article.
 
 ![](/img/NA_example.png)
 
-These can then be gathered together into a single "Organization" column, which means that each of the web-links and other columns will be repeated for each of the Organizations. This is acceptable, as there are no instances when these will need to be combined further. 
+These can then be gathered together into a single "Organization" column, which means that each of the web-links and other columns will be repeated for each of the Organizations. This is acceptable, as there are no instances in which these will need to be combined further. 
 
 ```{r}
 media <-  media %>%
@@ -108,11 +112,11 @@ media <-  media %>%
 ```  
 
 
-Upon inspection, it is clear that there are some issues regarding how it was parsed during the seperating, spreading and gathering. Some columns correctly contain organization names (1), some are NA (2), and others contain blank character spaces (3). 
+Upon inspection, it is clear that there are some issues around how it was parsed during the separating, spreading and gathering. Some columns correctly contain organization names (1), some are NA (2), and others contain blank character spaces (3).
 
 ![](/img/org-column.png)
 
-After help from the rstats community on twitter and through problem solving, I found by nesting ```str_trim()``` within mutate I could remove whitespace, assign "NA" to the empty columns using ```na_if()```, and remove all ```NA``` in the column with ```na.omit```. 
+After help from the rstats community on twitter and through problem solving, I found that by nesting ```str_trim()``` within mutate I could remove whitespace, assign "NA" to the empty columns using ```na_if()```, and remove all ```NA``` in the column with ```na.omit```. 
 
 ```{r, echo=FALSE}
 
@@ -129,7 +133,7 @@ media <- media %>%
 
 ```
 
-Excellent, I have now addressed nearly all the issues in the dataset to begin the analysis.
+Excellent, I have now addressed nearly all the issues in the dataset to begin the analysis:
 
 1. ~~Multiple empty rows~~
 2. ~~Names too long, contain non-alphanumeric characters~~
@@ -138,7 +142,7 @@ Excellent, I have now addressed nearly all the issues in the dataset to begin th
 5. ~~Empty, but not "NA" cells~~
 6. Typos
 
-I quickly realized that there are typos in some of the organization names, which can be rectified by using ```case_when()```. ```case_when()``` allows me to [vectorise multiple ```if``` and ```else if``` statements](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/case_when) at once, helpful for fixing multiple names in one shot. The downfall of this approach is that it requires searching for the names and finding the mispelt ones. I did this creating a ```str_detect()``` keyword search and ```summarise()``` by organizaton to see where multiples existed. 
+I quickly realized that there are typos in some of the organization names, which can be rectified by using ```case_when()```. ```case_when()``` allows me to [vectorise multiple ```if``` and ```else if``` statements](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/case_when) at once which is helpful for fixing multiple names in one shot. The downfall of this approach is that it requires searching for the names and finding the misspelt ones. I did this creating a ```str_detect()``` keyword search and ```summarise()``` by organization to see where multiples existed. 
 
 
 ```{r, message=FALSE}

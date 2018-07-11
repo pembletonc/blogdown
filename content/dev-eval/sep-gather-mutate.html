@@ -7,37 +7,38 @@ output: html_document
 
 
 
-<p>Reading Time: 3 minutes</p>
+<p>Reading Time: 4 minutes</p>
 <div id="the-thing-with-messy-data." class="section level1">
 <h1>The thing with messy data….</h1>
-<p>Working in international development, like many other fields, means being the only person who programs instead of using a spreadsheet software such as Microsoft Excel. This has some clear advantages, like being able to automate tasks and make pretty charts, and some challenges - such as perpetual cleaning of data to make it machine-friendly for easy processing. This post is an example of how to efficiently clean messy excel charts to prepare for future processing.</p>
+<p>Although I dabble in programming, most of my day-to-day tasks as an international development consultant entail working with large quantities of qualitative (e.g. interviews, surveys, documents) data. In international development, like many other fields, the common tool or data analysis is through using a spreadsheet software such as Microsoft Excel.</p>
+<p>This has some clear advantages, like being able to automate tasks and make pretty charts, and some challenges - such as perpetual cleaning of data to make it machine-friendly for easy processing. This post is an example of how to efficiently clean messy excel charts in preparation for future processing.</p>
 <div id="section" class="section level2">
 <h2></h2>
 </div>
 <div id="clean-data-is-happy-data" class="section level2">
 <h2>Clean data is happy data</h2>
-<p>In this case, I have a several common issues to address:</p>
+<p>For this post, I’m working with a small (&lt;200 rows) dataset of the times which certain organizations were mentioned in African media on topics related to Agriculture. This is the first step of what will be considered a “media content analysis”. When I first received the dataset it became apparent that before I could proceed with the content analysis, I would need to address several issues in cleaning it, namely:</p>
 <ol style="list-style-type: decimal">
-<li>Multiple empty rows</li>
-<li>Names too long, contain non-alphanumeric characters</li>
-<li>Dates showing up in excel-numeric format</li>
-<li>Typos</li>
+<li>Multiple empty rows to be removed</li>
+<li>Names are too long, contain non-alphanumeric characters</li>
+<li>Dates are showing up in excel-numeric format</li>
+<li>Typos in organization names</li>
 <li>Multiple pieces of information in a single cell</li>
 <li>Empty, but not “NA” cells</li>
 </ol>
 <p>These issues can all be addressed in a single <code>dplyr</code> pipeline using <code>janitor</code> and <code>lubridate</code> for the dates.</p>
 <div id="remove-empty-rows" class="section level3">
 <h3>1. Remove empty rows</h3>
-<p>When people work in excel, it is common to leave spaces between rows to make it easier on the eyes, but this unfortunately is inefficient in automated processing.</p>
+<p>When people work in excel, it is common to leave spaces between rows to make it easier on the eyes, but this is inefficient in automated processing.</p>
 <p>This: <img src="/img/Spreadsheet_example.png" /></p>
-<p>Looks like this to a computer:</p>
+<p>…looks like this to a computer:</p>
 <div class="figure">
 <img src="/img/r-spreadsheet-view.png" />
 
 </div>
-<p>Something which can be easily fixed by removing the “empty” rows as soon as the data is imported with the <code>remove_empty()</code> function:</p>
+<p>this can be easily fixed by removing the “empty” rows as soon as the data is imported with the <code>remove_empty()</code> function:</p>
 <pre class="r"><code>media &lt;- read_excel(&quot;African Media Coverage.xlsx&quot;) %&gt;% remove_empty(which = &quot;rows&quot;)</code></pre>
-<p>Next, changing names to be more analysis-suitable:</p>
+<p>Next, change the names to be more suitable for analysis:</p>
 <pre class="r"><code>#change the names to remove spaces and other funny characters
 media &lt;- media %&gt;%
   rename(Title = `Article Title`, 
@@ -46,37 +47,37 @@ media &lt;- media %&gt;%
          Origin = `Outlet Origin`,
          Reach = `Outlet Reach`,
          Mentions = `Organizations Mentioned (Separate by comma)`) </code></pre>
-<p>Follwoing this, we can remove the pesky excel numeric and convert to Date format using the <code>janitor</code> <code>excel_numeric_to_date()</code> function:</p>
+<p>Following these quick fixes, I can remove the pesky excel numeric and convert to Date format using the <code>janitor</code> <code>excel_numeric_to_date()</code> function:</p>
 <pre class="r"><code>media &lt;- media %&gt;%
   mutate(Date = excel_numeric_to_date(as.numeric(Date))) </code></pre>
-<p>Until this point, the tasks completed have been oriented around making the data suitable for R when it was already suitable for human-use in excel. This next stage, makes the data more suitable for both.</p>
-<p>The column “mentions”, which contains human-input instances each time a certain organization was mentioned in a media article, consists of a list of names seperated by a comma. This means that while I could pull out instances where organization names are mentioned using the <code>stringr</code> <code>str_detect()</code> function, I couldn’t analyze these organizations individually, and there would be double counting, and potentially other errors.</p>
+<p>Up until this point, the tasks completed have been oriented around making the data suitable for R when it was already suitable for human-use in excel. The next stage makes the data more suitable for both.</p>
+<p>The column “mentions”, which contains human-input instances each time a certain organization was mentioned in a media article, consists of a list of names separated by a comma. This means that while I could pull out instances where organization names are mentioned using the <code>stringr</code> <code>str_detect()</code> function, I couldn’t analyze these organizations individually, or guarantee that there was no double counting or other errors.</p>
 <p>To split them, I first separate the column into individual columns using <code>separate()</code>:</p>
 <pre class="r"><code>media &lt;- media %&gt;%
   separate(Mentions, into = c(&quot;Org_1&quot;, &quot;Org2&quot;, &quot;Org3&quot;, &quot;Org4&quot;, &quot;Org5&quot;,
                               &quot;Org6&quot;, &quot;Org7&quot;, &quot;Org8&quot;, &quot;Org9&quot;, &quot;Org10&quot;), sep = &quot;,&quot;)</code></pre>
-<p>which results in multiple columns with temporary names, with each column containing the name of one of the organizations mentioned in the article.</p>
+<p>This results in multiple columns with temporary names, with each column containing the name of one of the organizations mentioned in the article.</p>
 <div class="figure">
 <img src="/img/NA_example.png" />
 
 </div>
-<p>These can then be gathered together into a single “Organization” column, which means that each of the web-links and other columns will be repeated for each of the Organizations. This is acceptable, as there are no instances when these will need to be combined further.</p>
+<p>These can then be gathered together into a single “Organization” column, which means that each of the web-links and other columns will be repeated for each of the Organizations. This is acceptable, as there are no instances in which these will need to be combined further.</p>
 <pre class="r"><code>media &lt;-  media %&gt;%
   gather(c(&quot;Org_1&quot;, &quot;Org2&quot;, &quot;Org3&quot;, &quot;Org4&quot;, &quot;Org5&quot;,
            &quot;Org6&quot;, &quot;Org7&quot;, &quot;Org8&quot;, &quot;Org9&quot;, &quot;Org10&quot;), key = Position, value = Organization) %&gt;%
   select(-Position)</code></pre>
-<p>Upon inspection, it is clear that there are some issues regarding how it was parsed during the seperating, spreading and gathering. Some columns correctly contain organization names (1), some are NA (2), and others contain blank character spaces (3).</p>
+<p>Upon inspection, it is clear that there are some issues around how it was parsed during the separating, spreading and gathering. Some columns correctly contain organization names (1), some are NA (2), and others contain blank character spaces (3).</p>
 <div class="figure">
 <img src="/img/org-column.png" />
 
 </div>
-<p>After help from the rstats community on twitter and through problem solving, I found by nesting <code>str_trim()</code> within mutate I could remove whitespace, assign “NA” to the empty columns using <code>na_if()</code>, and remove all <code>NA</code> in the column with <code>na.omit</code>.</p>
+<p>After help from the rstats community on twitter and through problem solving, I found that by nesting <code>str_trim()</code> within mutate I could remove whitespace, assign “NA” to the empty columns using <code>na_if()</code>, and remove all <code>NA</code> in the column with <code>na.omit</code>.</p>
 {{% tweet "1016789531297660928" %}}
 <pre class="r"><code>media &lt;- media %&gt;%
   mutate(Organization = str_trim(Organization, side = &quot;both&quot;),
          Organization = na_if(Organization, &quot;&quot;)) %&gt;%
   na.omit(Organization)</code></pre>
-<p>Excellent, I have now addressed nearly all the issues in the dataset to begin the analysis.</p>
+<p>Excellent, I have now addressed nearly all the issues in the dataset to begin the analysis:</p>
 <ol style="list-style-type: decimal">
 <li><del>Multiple empty rows</del></li>
 <li><del>Names too long, contain non-alphanumeric characters</del></li>
@@ -85,7 +86,7 @@ media &lt;- media %&gt;%
 <li><del>Empty, but not “NA” cells</del></li>
 <li>Typos</li>
 </ol>
-<p>I quickly realized that there are typos in some of the organization names, which can be rectified by using <code>case_when()</code>. <code>case_when()</code> allows me to <a href="https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/case_when">vectorise multiple <code>if</code> and <code>else if</code> statements</a> at once, helpful for fixing multiple names in one shot. The downfall of this approach is that it requires searching for the names and finding the mispelt ones. I did this creating a <code>str_detect()</code> keyword search and <code>summarise()</code> by organizaton to see where multiples existed.</p>
+<p>I quickly realized that there are typos in some of the organization names, which can be rectified by using <code>case_when()</code>. <code>case_when()</code> allows me to <a href="https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/case_when">vectorise multiple <code>if</code> and <code>else if</code> statements</a> at once which is helpful for fixing multiple names in one shot. The downfall of this approach is that it requires searching for the names and finding the misspelt ones. I did this creating a <code>str_detect()</code> keyword search and <code>summarise()</code> by organization to see where multiples existed.</p>
 <pre class="r"><code>media &lt;- media %&gt;%
   mutate(Organization = case_when(
     Organization == &quot;Bill and Melinda Gates Foundation&quot; ~ &quot;Bill &amp; Melinda Gates Foundation (BMGF)&quot;,

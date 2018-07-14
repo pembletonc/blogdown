@@ -1,9 +1,8 @@
 ---
-title: "Analyzing Twitter Data in R"
+title: "Analyzing Twitter Data Using Tidytext, TwitteR and Lubridate"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_document
-draft: true 
 ---
 
 ```{r setup, include=FALSE}
@@ -17,6 +16,9 @@ library(tidyverse)
 library(graphTweets)
 library(kableExtra)
 library(lubridate)
+library(ggridges)
+library(wesanderson)
+library(egg)
 
 bytes <- file.size("tidy-text-twitter.Rmd")
 words <- bytes/10
@@ -25,19 +27,27 @@ minutes <- words/200
 ```
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-tweets <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/tweets.csv")
+tweets <- read_csv("tweets.csv")
 
 ```
 
 Reading Time: `r round(minutes)` minutes  
 
 
-## Tidying Twitter Data with Tidytext and twitteR
+## Tidying twitter data with tidytext and twitteR
 
-An interesting way to learn to work with string and qualitative data is using the ```twitteR```, ``` tidyverse```, and ```tidytext``` packages. This post isn't looking to solve some kind of existential question on human interaction, just to explore and see how sentiment analysis and tidytext can be used with social media data, and more importantly to learn a bit about this type of analysis. 
+Automated text analysis for sentiment, word frequencies, and content has long been the dream of qualitative scientists, but it still remains somewhat elusive when trying to extract meaningful interpretations of massive amounts of text using machine-based approaches. One approach to perform this type of analysis in R is with the newly developed [text mining with R](https://www.tidytextmining.com/) ```tidytext``` tools developed by [Julia Silge](https://twitter.com/juliasilge) and [David Robinson](https://twitter.com/drob). As included in the tutorial / vignette, the tidytext library can used to perform text analysis on tweet content, which is what I would like to do in this post. 
 
-We've seen a complete and utter exhaustion of sentiment analyses showing that Trump's tweets are racist, negative, hate-filled, and are full of his longest lasting legacy piece, lies. So instead, I'd like to see what leaders around the world are saying in their tweets, and if there's any difference in their tones.  
-When I started doing some research into this, I found that there is a [severe lack of gender equality between social media "influencers"](https://www.newstatesman.com/politics/feminism/2017/12/why-are-women-politics-less-authoritative-twitter-because-men-are-less), and that both men and women retweet and interact with male politicians and political journalists far more (5 times more) than their female counterparts. As such, I can't only use "top influential politician lists", such as [this 'twiplomacy' list](https://twiplomacy.com/ranking/50-world-leaders-interactions-twitter/) of world leaders with the most twitter interactions, so I will be much more selective to attain gender parity in the analysis.
+### Choosing a topic to analyze
+
+I find global politics interesting enough, and the trend of authorities increasing their presence on social media provides a unique and open source of information to interpret a leader’s talking points, and to see how these can be associated with certain sentiments, or historical points of interest. 
+
+### Selecting world leaders
+When I started doing some research into selecting which leaders should be included, I found that there is a [severe lack of inclusion of women in lists stating the top "influencers" on social media](https://www.newstatesman.com/politics/feminism/2017/12/why-are-women-politics-less-authoritative-twitter-because-men-are-less), and that both men and women interact with male politicians and political journalists far more (5 times more) than their female counterparts. 
+
+
+As such, I can't only use "top influential politician lists", such as [this 'twiplomacy' list](https://twiplomacy.com/ranking/50-world-leaders-interactions-twitter/) of world leaders with the most twitter interactions, so I will instead be much more selective to attain gender parity in the analysis.
+
 
 ```{r, echo=FALSE}
 
@@ -57,22 +67,25 @@ Leaders <- tribble(
   )
 ```
 
+Seeking a good geographic, linguistic, political and gender balance led me to this final list of world leaders:
+
 ```{r, echo=FALSE, message=FALSE}
-kable(Leaders)
+kable(Leaders) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
 
-Mining their tweets and converting into a useful tibble is smooth process with the ``` twitteR``` package: 
+Mining their tweets and converting into a dataframe is smooth process with the ``` twitteR``` package, providing a single usable source, easily updated, of each users' tweets.
 
 ```{r, eval=FALSE}
-#Username <-  as.list(Leaders$Username)
+Username <-  as.list(Leaders$Username)
 
-#x <- lapply(Username[1:10], function(x) userTimeline(x, n = 500, includeRts = FALSE))
+x <- lapply(Username[1:10], function(x) userTimeline(x, n = 3200, includeRts = FALSE))
 
-#y <- lapply(x, function(x) twListToDF(x))
-#tweets <- tibble()
-#for(n in 1:10){
-#  tweets <- rbind(tweets, y[[n]])
-#}
+y <- lapply(x, function(x) twListToDF(x))
+tweets <- tibble()
+for(n in 1:10){
+  tweets <- rbind(tweets, y[[n]])
+}
 ```
 
 With the tweets collected, we can start the analysis of what the various leaders are saying. My assumption is that they're all sticking to their talking points, and that evaluating any kind of emotion from the tweets will be fairly inaccurate as machines aren't so good at this type of text analysis yet.
@@ -80,38 +93,39 @@ With the tweets collected, we can start the analysis of what the various leaders
 A first necessary step is looking at the data, which showed me two big issues:
 
 * Tweets are in multiple languages (Hindi, French, Spanish, English)
-* Tweet counts vary widely
+* Tweet counts vary widely between leaders
 
 
-```{r}
+```{r, echo=FALSE}
 tweets %>%
   group_by(screenName) %>%
   summarise(n = n()) %>%
   arrange(desc(n)) %>%
-  kable()
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
 ```
 
 
-
-##Issue 1: multi-lingual tweets from all the laeaders
+##Issue 1: multi-lingual tweets from all the leaders
 
 There is another clear elephant in the ```twitteR``` analysis room: most of the leaders here aren't tweeting in English, and most are tweeting in multiple languages. This brings up a few options: 
 
 1. Use a half-assed computer translation of all the tweets
 2. Change my analysis and select only English-speaking world leaders
-3. Continue with the analysis, and translate the top individual words when needed.
+3. Continue with the analysis, and at a later date perform it using the multi-lingual version of the NRC Word-Emotion Association Lexicon created by the [National Research Council Canada (NRC)](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm)
 
-I went with option 3, because once I saw that both ```googleLanguageR``` and ```translateR``` require creating an account complete with credit card, I realized its a task for another day to translate and process the tweets. As an aside, I would love to use ```googleLanguageR``` which can both [detect and translate](https://cran.r-project.org/web/packages/googleLanguageR/vignettes/translation.html), and will explore this in a future post.
+I went with option 3, because once I saw that both ```googleLanguageR``` and ```translateR``` require creating an account with credit card, I realized its a task for another day to translate and process the tweets. As an aside, I would love to use ```googleLanguageR``` which can both [detect and translate](https://cran.r-project.org/web/packages/googleLanguageR/vignettes/translation.html), and will explore this in a future post.
 
 ##Issue 2: Variation in twitter activity / data collected
 
 Okay, so we can see that there's some pretty large variation between what the leaders are tweeting (when we don't include retweets). I'm not sure if this is because of how the API collects tweets in the list created, the limit per user, or because they all have drastically differing degrees of twitter activity.
-  After testing the download with different amounts (n), I found that it was consistently not collected all tweets from all users when placed in the list, and when downloading individually it brought up the same amount (e.g. Justin Trudeau with only 69 tweets, dating back only to June 20, 2018). I intend to pursue this further, but for now want to get into the bread and butter.
+  After testing the download with different amounts (n), I found that it was consistently not collected all tweets from all users when placed in the list, and when downloading individually it brought up the same amount (e.g. Justin Trudeau with only 69 tweets, dating back only to June 20, 2018, whereas he is one of the more avid tweeters on the list for the past several years). I intend to pursue this further, but for now want to get into the bread and butter.
 
 
 #Tidying the tweets
 
-Regardless of the issues within the dataset, there are still some interesting things which can be derived. Following the [tidytext]() principles developed by [Julia Silge]() and [David Robinson](), I first parsed the text to remove stopwords in each of the four languages present (English, French, Spanish and Hindi):
+Regardless of the issues within the dataset, there are still some interesting things which can be derived. Following the [tidytext](https://www.tidytextmining.com/preface.html) principles developed by [Julia Silge](https://twitter.com/juliasilge) and [David Robinson](https://twitter.com/drob), I first parsed the text to remove stopwords (e.g. "and", "the", "le", "les", etc.) in each of the four languages present (English, French, Spanish and Hindi):
 
 ```{r, message=FALSE, warning=FALSE}
 stop_words_en <- stop_words
@@ -128,7 +142,7 @@ names(stop_words_hn) <- "शब्द"
 ```
 
 
-Once set, can bein the anti-joining (or filtering out) process with these stopwords and other letters and unwanted symbols with:
+Once having established what these are, I can begin the anti-joining (or filtering out) process with these stopwords and other letters and unwanted symbols with:
 
 ```{r, message=FALSE, warning=FALSE}
 replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https"
@@ -145,7 +159,7 @@ tidy_tweets <- tweets %>%
 
 ```
 
-And what this gives me is a word-by-word breakdown of every tweet, with the Pope and French President Macron coming out with the most n-grams. 
+And what this gives me is a word-by-word breakdown of every tweet, with the Pope and French President Macron coming out with the most individual words, still reflective of the error mentioned above. 
 
 ```{r}
 tidy_tweets %>%
@@ -156,15 +170,15 @@ tidy_tweets %>%
   kable_styling(bootstrap_options = c("striped","responsive", full_width = FALSE, position = "float_right"))
 ```
 
-I believe there are several ways to help even this high difference in tweet count (therefor wordcount), by limiting the timeframe, and by grouping the words on a monthly basis.
+One way to help even-out this high tweet-count differential (and therefore wordcount), is by limiting the timeframe from January 1st, 2017 to now, and by grouping the words on a monthly basis by setting a ```floor_date()```:
 
 ```{r, echo = FALSE, error=FALSE, warning=FALSE}
-tweets_2018 <- tidy_tweets %>%
+tweets_2017_18 <- tidy_tweets %>%
   mutate(time_floor = floor_date(created, unit = "1 month")) %>%
-  mutate(month = ymd(time_floor)) %>%
+  mutate(month = date(time_floor)) %>%
   filter(month > "2017-01-01")
 
-ggplot(tweets_2018, aes(x = month, fill = screenName)) +
+ggplot(tweets_2017_18, aes(x = month, fill = screenName)) +
   geom_histogram(position = "identity", bins = 20, show.legend = FALSE) +
   facet_wrap(~screenName, ncol = 2) +
   theme_bw(base_family = "Lato") +
@@ -179,9 +193,95 @@ ggplot(tweets_2018, aes(x = month, fill = screenName)) +
 
 ```
 
+Looking at the tweets since 2017, it's clear how the gap of tweets collected impacts the counts of world leaders, but in the least it provides an idea of the availability and quality of data present. 
+
+##Looking at sentiment of all leaders, by counts
+
+Looking at frequencies of words used, we can get an idea of what words are being used as raw counts, but going deeper into the meaning of these words requires using the NRC emoticon [lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm). While it is also available in over [40 languages](http://saifmohammad.com/WebPages/AccessResource.htm), at this point I'll limit it's use to English and explore the multi-lingual analysis for another post.
+
+```{r, message=FALSE}
+#join the tweets library to the sentiment library, keeping only the sentiment-based words
+sentiment_tweets_NRC <- tweets_2017_18 %>%
+  inner_join(get_sentiments("nrc")) %>%
+  select(sentiment, everything())
+```
+
+
+Graphically, these can be well-represented using the ```ggridges()``` package: 
+```{r, message=FALSE, warning=FALSE}
+
+pal <- wes_palette(6, name = "GrandBudapest1", type = "continuous")
+
+sentiment_tweets_NRC %>%
+  filter(sentiment %in% c("joy", "trust", "anticipation", 
+                          "anger", "fear", "sadness")) %>%
+  ggplot(aes(x = month, y = sentiment, fill = sentiment)) +
+  geom_density_ridges(alpha = 0.8, show.legend = FALSE) +
+  labs(x = "", y = "", title = "World Leader Tweet Sentiments",
+       subtitle = "") +
+  scale_y_discrete(expand = c(0.01, 0)) +
+  scale_x_date() +
+  scale_fill_manual(values = pal) +
+  theme_ridges(grid = TRUE) +
+  theme(plot.title = element_text(size = 22, hjust = -0.2),
+        plot.subtitle = element_text(size = 18, face = "italic"),
+        axis.text.y = element_text(size = 15, face = "bold"))
+```
+
+There isn't so much of a pattern of emotional change, rather a pattern of increased usage (because we are only looking at counts of all leaders). However, when looking at the leaders individually, we begin to see something more reflective occuring, particularly for the leaders with the most tweets collected:
+
+
+```{r, echo=FALSE, warning = FALSE, message=FALSE}
+pal_pos <- wes_palette(3, name = "FantasticFox1", type = "continuous")
+pal_neg <- wes_palette(3, name = "Darjeeling2", type = "continuous")
+
+sentiment_tweets_NRC %>%
+  filter(sentiment %in% c("joy", "trust", "anticipation")) %>%
+  filter(screenName %in% c("EmmanuelMacron", "Pontifex", "RT_Erdogan", "QueenRania", "CFKArgentina", "mbachelet")) %>%
+  ggplot(aes(x = month, y = sentiment, fill = sentiment)) +
+  geom_density_ridges(alpha = 0.8, show.legend = FALSE) +
+  facet_wrap(~screenName, ncol = 2) +
+    labs(x = "", y = "", title = "",
+       subtitle = "\nPositive Sentiments") +
+  scale_y_discrete(expand = c(0.01, 0)) +
+  scale_x_date() +
+  scale_fill_manual(values = pal_pos) +
+  theme_ridges(grid = FALSE) +
+  theme(plot.title = element_text(size = 22, hjust = -0.2),
+        plot.subtitle = element_text(size = 18, face = "italic"),
+        axis.text.y = element_text(size = 15, face = "bold"))
+
+sentiment_tweets_NRC %>%
+  filter(sentiment %in% c("anger", "fear", "sadness")) %>%
+  filter(screenName %in% c("EmmanuelMacron", "Pontifex", "RT_Erdogan", "QueenRania", "CFKArgentina", "mbachelet")) %>%
+  ggplot(aes(x = month, y = sentiment, fill = sentiment)) +
+  geom_density_ridges(alpha = 0.8, show.legend = FALSE) +
+  facet_wrap(~screenName, ncol = 2) +
+  labs(x = "", y = "", title = "",
+       subtitle = "\nNegative Sentiments") +
+  scale_y_discrete(expand = c(0.01, 0)) +
+  scale_x_date() +
+  scale_fill_manual(values = pal_neg) +
+  theme_ridges(grid = FALSE) +
+  theme(plot.title = element_text(size = 22, hjust = -0.2),
+        plot.subtitle = element_text(size = 18, face = "italic"),
+        axis.text.y = element_text(size = 15, face = "bold"))
+```
+
+Something interesting we can see is a clear increase in "negative" word usage by Erdogan leading up to his re-election, decreasing usage of words associated with anger by Queen Rania of Jordan, and spikes of words associated with sadness and fear by ex-President Bachelet of Chile around the time her dual-term predidency ended. 
+
+This is really just the tip of the iceberg when it comes to text analysis, tidying, and text interpretation with sentiment analysis. When looking closer at the data, it is apparent that there are still large gaps in determining sentiment from words extracted from tweets, and this post is far from taking a novel approach to this analysis. Next time, I anticipate performing this multi-lingually, digging deeper into word usage, and quality-checking the dataset.
 
 
 
+### Acknowledgements and references
 
+For the [twitteR](https://cran.r-project.org/web/packages/twitteR/twitteR.pdf)package, which has been indispensible for this and thousands of other similar "tweet" explorations;
+
+For the methodology and general workflow found in the [text mining with R](https://www.tidytextmining.com/) tutorial, developed by [Julia Silge](https://twitter.com/juliasilge) and [David Robinson](https://twitter.com/drob)
+
+This application/product/tool makes use of the NRC-Word Emotion Association Lexicon, created by Saif M. Mohammad and Peter D. Turney at the National Research Council Canada.
+
+And for giving the idea, and providing the base code with the ```ggridges``` package, I thank [Grace Lawley](https://gracelawley-cs631.netlify.com/project/final_vis/), a student of [Dr. Alison Hill](https://twitter.com/apreshill)
 
 

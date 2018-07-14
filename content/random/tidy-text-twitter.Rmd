@@ -2,7 +2,7 @@
 title: "Analyzing Twitter Data Using Tidytext, TwitteR and Lubridate"
 author: "Corey Pembleton"
 date: "6/18/2018"
-output: html_document
+output: html_page()
 ---
 
 ```{r setup, include=FALSE}
@@ -178,7 +178,7 @@ tweets_2017_18 <- tidy_tweets %>%
   mutate(month = date(time_floor)) %>%
   filter(month > "2017-01-01")
 
-a <- ggplot(tweets_2017_18, aes(x = month, fill = screenName)) +
+ggplot(tweets_2017_18, aes(x = month, fill = screenName)) +
   geom_histogram(position = "identity", bins = 20, show.legend = FALSE) +
   facet_wrap(~screenName, ncol = 2) +
   theme_bw(base_family = "Lato") +
@@ -191,10 +191,6 @@ a <- ggplot(tweets_2017_18, aes(x = month, fill = screenName)) +
   theme(panel.grid = element_blank())+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.7))
 
-```
-
-```{r, echo=FALSE}
-a
 ```
 
 Looking at the tweets since 2017, it's clear how the gap of tweets collected impacts the counts of world leaders, but in the least it provides an idea of the availability and quality of data present. 

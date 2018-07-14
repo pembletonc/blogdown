@@ -28,8 +28,6 @@ Although I dabble in programming, most of my day-to-day tasks as an internationa
 
 This has some clear advantages, like being able to automate tasks and make pretty charts, and some challenges - such as perpetual cleaning of data to make it machine-friendly for easy processing. This post is an example of how to efficiently clean messy excel charts in preparation for future processing.
 
-##
-
 
 
 ##Clean data is happy data

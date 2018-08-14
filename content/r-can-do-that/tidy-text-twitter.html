@@ -3,6 +3,7 @@ title: "Analyzing Twitter Data Using Tidytext, TwitteR and Lubridate"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_page
+slug: tidy-twitter-text-analysis
 ---
 
 <script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
@@ -434,7 +435,7 @@ SushmaSwaraj
 </tbody>
 </table>
 <p>One way to help even-out this high tweet-count differential (and therefore wordcount), is by limiting the timeframe from January 1st, 2017 to now, and by grouping the words on a monthly basis by setting a <code>floor_date()</code>:</p>
-<p><img src="/random/tidy-text-twitter_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="/r-can-do-that/tidy-text-twitter_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>Looking at the tweets since 2017, it’s clear how the gap of tweets collected impacts the counts of world leaders, but in the least it provides an idea of the availability and quality of data present.</p>
 <div id="looking-at-sentiment-of-all-leaders-by-counts" class="section level2">
 <h2>Looking at sentiment of all leaders, by counts</h2>
@@ -460,9 +461,9 @@ sentiment_tweets_NRC %&gt;%
   theme(plot.title = element_text(size = 22, hjust = -0.2),
         plot.subtitle = element_text(size = 18, face = &quot;italic&quot;),
         axis.text.y = element_text(size = 15, face = &quot;bold&quot;))</code></pre>
-<p><img src="/random/tidy-text-twitter_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="/r-can-do-that/tidy-text-twitter_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <p>There isn’t so much of a pattern of emotional change, rather a pattern of increased usage (because we are only looking at counts of all leaders). However, when looking at the leaders individually, we begin to see something more reflective occuring, particularly for the leaders with the most tweets collected:</p>
-<p><img src="/random/tidy-text-twitter_files/figure-html/unnamed-chunk-13-1.png" width="672" /><img src="/random/tidy-text-twitter_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+<p><img src="/r-can-do-that/tidy-text-twitter_files/figure-html/unnamed-chunk-13-1.png" width="672" /><img src="/r-can-do-that/tidy-text-twitter_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
 <p>Something interesting we can see is a clear increase in “negative” word usage by Erdogan leading up to his re-election, decreasing usage of words associated with anger by Queen Rania of Jordan, and spikes of words associated with sadness and fear by ex-President Bachelet of Chile around the time her dual-term predidency ended.</p>
 <p>This is really just the tip of the iceberg when it comes to text analysis, tidying, and text interpretation with sentiment analysis. When looking closer at the data, it is apparent that there are still large gaps in determining sentiment from words extracted from tweets, and this post is far from taking a novel approach to this analysis. Next time, I anticipate performing this multi-lingually, digging deeper into word usage, and quality-checking the dataset.</p>
 <div id="acknowledgements-and-references" class="section level3">

@@ -3,7 +3,7 @@ title: "Cleaning, Gathering, excel_numeric,  and na_if()"
 author: "Corey Pembleton"
 date: "July 11, 2018"
 output: html_document
-slug: "separate-gather-mutate-eval-data"
+slug: separate-gather-mutate-eval-data
 ---
 
 ```{r setup, include=FALSE}

@@ -3,7 +3,6 @@ title = "About"
 date = 2018-06-16
 author = "Corey Pembleton"
 description = ""
-slug = "about"
 +++
 
 ## About this blog

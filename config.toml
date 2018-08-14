@@ -51,8 +51,7 @@ enableEmoji = true
     share = true
 
 [Permalinks]
-    blog = "blog/:slug/"
-    post = "/:slug/"
+    post = "/:year/:month/:day/:slug/"
 
 [[menu.main]]
     name = "About"

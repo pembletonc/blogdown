@@ -75,8 +75,8 @@ enableEmoji = true
     weight = 3  
 
 [[menu.main]]
-    name = "Random"
-    url = "/random/"
+    name = "R can do that?"
+    url = "/r-can-do-that/"
     weight = 4  
 
 [[menu.main]]

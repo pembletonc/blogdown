@@ -52,7 +52,7 @@ enableEmoji = true
 
 [Permalinks]
     blog = "blog/:slug/"
-    post = "/:year/:month/:day/:slug/"
+    post = "/:slug/"
 
 [[menu.main]]
     name = "About"

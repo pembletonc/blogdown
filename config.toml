@@ -44,20 +44,15 @@ enableEmoji = true
     dateformfull = "Mon Jan 2 2006 15:04:05 MST"
     copyright = "Copyright © 2018 Corey Pembleton"
     
-    highlightjsVersion = "9.11.0"
-    highlightjsCDN = "//cdn.bootcss.com"
-    highlightjsLang = ["r", "yaml"]
-    highlightjsTheme = "atom-one-light"
-
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
-    highlightjs = true
+    highlightjs = "github"
     progressively = true
     share = true
 
 [Permalinks]
     blog = "blog/:slug/"
-    post = "/:year/:month/:day/:filename/"
+    post = "/:year/:month/:day/:slug/"
 
 [[menu.main]]
     name = "About"

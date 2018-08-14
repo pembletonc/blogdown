@@ -3,6 +3,7 @@ title: "Home"
 date: "2018-06-16"
 author: "Corey Pembleton"
 description: "homepage"
+slug: home
 ---
 <img src = "img/corey1.jpg" style="width:40%; border:2px solid; margin-right: 20px" align="left"/>
 

@@ -12,6 +12,7 @@ categories = [
     "CV",
     "R",
 ]
+slug = "cv"
 +++
 
 # EDUCATION

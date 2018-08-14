@@ -3,6 +3,8 @@ title: "Evaluation Data Tidying"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_document
+slug: cleaning-and-tidying-evaluation-data
+draft: true
 ---
 
 ```{r setup, include=FALSE}

@@ -3,7 +3,7 @@ title: "Analyzing Twitter Data Using Tidytext, TwitteR and Lubridate"
 author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_page
-slug: "tidy-twitter-text-analysis"
+slug: tidy-twitter-text-analysis
 ---
 
 ```{r setup, include=FALSE}

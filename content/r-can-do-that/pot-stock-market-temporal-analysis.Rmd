@@ -1,0 +1,48 @@
+---
+title: "Temporal (Pot) Stock Analysis"
+author: "Corey Pembleton"
+date: "August 14, 2018"
+output: html_document
+slug: pot-stock-market-temporal-analysis
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stocks)
+library(janitor)
+library(lubridate)
+library(readxl)
+
+```
+
+## Pot stocks: boom or bust?
+
+I personally have little or no interest in capital markets, but I have to say they are well-structured quantitative datasets to play with. Over the past two years in Canada there have been interesting political shifts leaning towards, and away from, the legalization of pot across the country. This, I hypothosize, has resulted in interesting market fluctuations as well. 
+
+### What I'm working with
+
+[Matt Dancho & Davis Vaughan](https://github.com/business-science/tidyquant) created the ```tidyquant``` R package, which builds upon the widely-used ```quantmod``` and ```tidyverse``` packages. With ```tidyquant``` I am able to download and process the relevant data. My banker (cough) brother told me to look into the "Horizons Weed ETF", which is an exchange trade fund which holds stocks in some 40 weed companies, which I've used to create an object from, *holdings*. Some of these companies are only available on the Canadian Toronto Stock Exchange, meaning I couldn't dig up their financial data, however I could for the top 10 holdings which are also on NASDAQ, so can work with these.
+
+```{r}
+weed_stock_prices <- tq_get(c("GWPH", "IIPR", "INSY", "SMG",
+                               "XXII","ZYNE", "CGC", "APHQF", "CRON"),
+                             get = "stock.prices", from = "2000-01-01")
+```
+
+```tidyquant``` gives me everything I need in a single function, which is remarkable to say the least. ```tq_get()``` allows me to extract stock prices for each of the companies, which, when collecting since the year 2000, gives a nearly 15,000 row dataset of daily stock price changes.
+
+```{r}
+weed_stock_prices %>%
+  slice(1:10) %>% 
+  kableExtra::kable()
+```
+
+
+
+
+
+
+
+

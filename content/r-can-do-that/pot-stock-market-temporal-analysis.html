@@ -1,0 +1,133 @@
+---
+title: "Temporal (Pot) Stock Analysis"
+author: "Corey Pembleton"
+date: "August 14, 2018"
+output: html_document
+slug: pot-stock-market-temporal-analysis
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<div id="pot-stocks-boom-or-bust" class="section level2">
+<h2>Pot stocks: boom or bust?</h2>
+<p>I personally have little or no interest in capital markets, but I have to say they are well-structured quantitative datasets to play with. Over the past two years in Canada there have been interesting political shifts leaning towards, and away from, the legalization of pot across the country. This, I hypothosize, has resulted in interesting market fluctuations as well.</p>
+<div id="what-im-working-with" class="section level3">
+<h3>What I’m working with</h3>
+<p><a href="https://github.com/business-science/tidyquant">Matt Dancho &amp; Davis Vaughan</a> created the <code>tidyquant</code> R package, which builds upon the widely-used <code>quantmod</code> and <code>tidyverse</code> packages. With <code>tidyquant</code> I am able to download and process the relevant data. My banker (cough) brother told me to look into the “Horizons Weed ETF”, which is an exchange trade fund which holds stocks in some 40 weed companies, which I’ve used to create an object from, <em>holdings</em>. Some of these companies are only available on the Canadian Toronto Stock Exchange, meaning I couldn’t dig up their financial data, however I could for the top 10 holdings which are also on NASDAQ, so can work with these. ### Getting the data and Exploratory Data Analysis</p>
+<pre class="r"><code>weed_stock_prices &lt;- tq_get(c(&quot;GWPH&quot;, &quot;IIPR&quot;, &quot;INSY&quot;, &quot;SMG&quot;,
+                               &quot;XXII&quot;,&quot;ZYNE&quot;, &quot;CGC&quot;, &quot;APHQF&quot;, &quot;CRON&quot;),
+                             get = &quot;stock.prices&quot;, from = &quot;2000-01-01&quot;)</code></pre>
+<p><code>tidyquant</code> gives me everything I need in a single function, which is remarkable to say the least. <code>tq_get()</code> allows me to extract stock prices for each of the companies, which, when collecting since the year 2000, gives a nearly 15,000 row dataset of daily stock price changes.</p>
+<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 10px; width: auto !important; float: right; margin-left: 10px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+symbol
+</th>
+<th style="text-align:right;">
+Daily Occurences on Market
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SMG
+</td>
+<td style="text-align:right;">
+4683
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INSY
+</td>
+<td style="text-align:right;">
+4611
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+XXII
+</td>
+<td style="text-align:right;">
+1900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GWPH
+</td>
+<td style="text-align:right;">
+1332
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+APHQF
+</td>
+<td style="text-align:right;">
+859
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ZYNE
+</td>
+<td style="text-align:right;">
+762
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IIPR
+</td>
+<td style="text-align:right;">
+427
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CGC
+</td>
+<td style="text-align:right;">
+147
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRON
+</td>
+<td style="text-align:right;">
+117
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; border: 0;" colspan="100%">
+<span style="font-style: italic;">Note: </span>
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border: 0;" colspan="100%">
+<sup></sup> All data from YahooFinance
+</td>
+</tr>
+</tfoot>
+</table>
+<p>It looks like there are some new entrants to the market, and some who have been around for a long time; with the larger companies (such as SMG, Miracle Grow) with seemingly more diverse types of business.</p>
+<p><img src="https://media.giphy.com/media/OzPmk5PUw4TRK/giphy.gif" /> Looking below, there is something interesting with the downfall of MiracleGrow, but what’s more interesting for this analysis is capturing the time when all stocks in the ETF have data, which looks to be around 2014.</p>
+<p><img src="/r-can-do-that/pot-stock-market-temporal-analysis_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Looking closer only at the dates beyond 2014, a much more interesting picture of the ETF arises:</p>
+<p><img src="/r-can-do-that/pot-stock-market-temporal-analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="having-a-closer-look" class="section level3">
+<h3>Having a closer look</h3>
+<p>We see a fairly volatile situation, although it appears at a glance that the daily closing values are increasing over time. Another useful tool within the <code>tidyquant::tq_get()</code> library is the <code>key.ratios()</code> function. The output of this function produces an impressively structured data frame (tibble in fact) of key statistics from each company. This time, I’ll limit the date to after 2014.</p>
+<pre class="r"><code>weed_key_ratios &lt;- tq_get(c(&quot;GWPH&quot;, &quot;IIPR&quot;, &quot;INSY&quot;, &quot;SMG&quot;,
+                            &quot;XXII&quot;,&quot;ZYNE&quot;, &quot;CGC&quot;, &quot;APHQF&quot;, &quot;CRON&quot;), 
+                          get = &quot;key.ratios&quot;, from = &quot;2014-01-01&quot;)</code></pre>
+</div>
+</div>

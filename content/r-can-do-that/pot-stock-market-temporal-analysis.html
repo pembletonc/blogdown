@@ -1,15 +1,15 @@
 ---
-title: "Temporal (Pot) Stock Analysis"
+title: "(Pot) Stock Analysis"
 author: "Corey Pembleton"
 date: "August 14, 2018"
 output: html_document
-slug: pot-stock-market-temporal-analysis
-draft: true
+slug: pot-stock-market-analysis
 ---
 
 <script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
+<p>Reading Time: 8 minutes</p>
 <div id="pot-stocks-boom-or-bust" class="section level2">
 <h2>Pot stocks: boom or bust?</h2>
 <p>I personally have little or no interest in capital markets, but I have to say they are well-structured quantitative datasets to play with. Over the past two years in Canada there have been interesting political shifts leaning towards, and away from, the legalization of pot across the country. This, I hypothosize, has resulted in interesting market fluctuations as well.</p>
@@ -124,248 +124,193 @@ CRON
 <p>Looking closer only at the dates beyond 2014, a much more interesting picture of the ETF arises:</p>
 <p><img src="/r-can-do-that/pot-stock-market-temporal-analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
-<div id="having-a-closer-look" class="section level3">
-<h3>Having a closer look</h3>
-<p>We see a fairly volatile situation, although it appears at a glance that the daily closing values are increasing over time. Another useful tool within the <code>tidyquant::tq_get()</code> library is the <code>key.ratios()</code> function. The output of this function produces an impressively structured data frame (tibble in fact) of key statistics from each company. This time, I’ll limit the date to after 2014.</p>
-<pre class="r"><code>weed_key_ratios &lt;- tq_get(c(&quot;GWPH&quot;, &quot;IIPR&quot;, &quot;INSY&quot;, &quot;SMG&quot;,
-                            &quot;XXII&quot;,&quot;ZYNE&quot;, &quot;CGC&quot;, &quot;APHQF&quot;, &quot;CRON&quot;), 
-                          get = &quot;key.ratios&quot;, from = &quot;2014-01-01&quot;)</code></pre>
-<p>The key ratios which are examined in the package are defined as:</p>
+<div id="digging-deeper-capital-asset-pricing-model-capm" class="section level3">
+<h3>Digging Deeper: Capital Asset Pricing Model (CAPM)</h3>
+<p>While it is interesting to know what the closing values of stocks are, something which investors are interested in is the expected return and risks of stocks, measured by growth and risk. One method for measuring this is through the CAPM. As described by Investopedia (via Matt Dancho), CAPM is:</p>
+<blockquote>
+<p>The capital asset pricing model (CAPM) is a model that describes the relationship between systematic risk and expected return for assets, particularly stocks. CAPM is widely used throughout finance for the pricing of risky securities, generating expected returns for assets given the risk of those assets and calculating costs of capital.</p>
+</blockquote>
+<p>Through a comparison of the only marijuana ETF on the NASDAQ I could find, “MJ”, we can see how the portfolio is performing by building a CAPM through the comparison of asset performance (“ra”) to the asset baseline (rb). Important CAPM outputs to be considered are the alpha and beta values, attributes which are measures of growth and risk, respectively.</p>
 <table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 11px; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-Key Ratio
-</th>
-<th style="text-align:left;">
-Definition
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-Financials
-</td>
-<td style="text-align:left;">
-These ratios include gross margin %, operating margin %, EPS, book value per share, and more.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Profitability
-</td>
-<td style="text-align:left;">
-These ratios include margin as a percentage of sales (gross margin, operating margin, EBT margin, etc) and profitability metrics such as tax rate %, asset turnover, ROA, financial leverage, ROE, return on invested capital, and more.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Growth
-</td>
-<td style="text-align:left;">
-These ratios include year over year, 3-year average, 5-year average, and 10-year average growth rates for revenue, operating income, net income, and EPS.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Cash Flow
-</td>
-<td style="text-align:left;">
-These ratios include operating cash flow growth % YOY, free cash flow growth % YOY, capital expenditure as a % of sales, and more.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Financial Health
-</td>
-<td style="text-align:left;">
-These ratios include balance sheet items as a percentage of total assets and liabilities, and liquidity/financial health metrics such as current ratio, quick ratio, debt/equity, and financial leverage.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Efficiency Ratios
-</td>
-<td style="text-align:left;">
-These ratios include days sales outstanding, days inventory, inventory turnover, asset turnover and more.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Valuation Ratios
-</td>
-<td style="text-align:left;">
-These ratios include price to earnings (P/E), price to sales (P/S), price to book (P/B), and price to operating cash flow.
-</td>
-</tr>
-</tbody>
-<tfoot>
-<tr>
-<td style="padding: 0; border: 0;" colspan="100%">
-<span style="font-style: italic;">Note: </span>
-</td>
-</tr>
-<tr>
-<td style="padding: 0; border: 0;" colspan="100%">
-<sup></sup> source: <a href="https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ01-core-functions-in-tidyquant.html#key-ratios-key-stats">cran tidyquant</a>
-</td>
-</tr>
-</tfoot>
-</table>
-<p>And in within each individual Key Ratio we find 17 more Categories, each with two subsections, profitability and Margin of Sales % (not shown).</p>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:300px; overflow-x: scroll; width:35%; ">
-<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 11px; width: auto !important; float: left; margin-right: 10px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-category
+symbol
 </th>
 <th style="text-align:right;">
-n
+Alpha
+</th>
+<th style="text-align:right;">
+Beta
+</th>
+<th style="text-align:right;">
+Correlation
+</th>
+<th style="text-align:right;">
+R-squared
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-Asset Turnover (Average)
+GWPH
 </td>
 <td style="text-align:right;">
-70
+0.0350
+</td>
+<td style="text-align:right;">
+-0.0011
+</td>
+<td style="text-align:right;">
+-0.1905
+</td>
+<td style="text-align:right;">
+0.0363
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-COGS
+IIPR
 </td>
 <td style="text-align:right;">
-70
+0.0425
+</td>
+<td style="text-align:right;">
+1.2892
+</td>
+<td style="text-align:right;">
+0.4004
+</td>
+<td style="text-align:right;">
+0.1603
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-EBT Margin
+INSY
 </td>
 <td style="text-align:right;">
-70
+-0.0059
+</td>
+<td style="text-align:right;">
+-0.0004
+</td>
+<td style="text-align:right;">
+-0.0672
+</td>
+<td style="text-align:right;">
+0.0045
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Financial Leverage (Average)
+SMG
 </td>
 <td style="text-align:right;">
-70
+0.0111
+</td>
+<td style="text-align:right;">
+-0.0004
+</td>
+<td style="text-align:right;">
+-0.2510
+</td>
+<td style="text-align:right;">
+0.0630
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Gross Margin
+XXII
 </td>
 <td style="text-align:right;">
-70
+0.0384
+</td>
+<td style="text-align:right;">
+-0.0004
+</td>
+<td style="text-align:right;">
+-0.0771
+</td>
+<td style="text-align:right;">
+0.0059
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Interest Coverage
+ZYNE
 </td>
 <td style="text-align:right;">
-70
+0.0221
+</td>
+<td style="text-align:right;">
+-0.0013
+</td>
+<td style="text-align:right;">
+-0.1629
+</td>
+<td style="text-align:right;">
+0.0265
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Net Int Inc &amp; Other
+CGC
 </td>
 <td style="text-align:right;">
-70
+0.0290
+</td>
+<td style="text-align:right;">
+0.7030
+</td>
+<td style="text-align:right;">
+0.2971
+</td>
+<td style="text-align:right;">
+0.0882
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Net Margin %
+APHQF
 </td>
 <td style="text-align:right;">
-70
+0.0841
+</td>
+<td style="text-align:right;">
+-0.0006
+</td>
+<td style="text-align:right;">
+-0.0971
+</td>
+<td style="text-align:right;">
+0.0094
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Operating Margin
+CRON
 </td>
 <td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Other
+-0.0460
 </td>
 <td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-R&amp;D
+-0.4657
 </td>
 <td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Return on Assets %
+-0.1494
 </td>
 <td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Return on Equity %
-</td>
-<td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Return on Invested Capital %
-</td>
-<td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Revenue
-</td>
-<td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SG&amp;A
-</td>
-<td style="text-align:right;">
-70
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Tax Rate %
-</td>
-<td style="text-align:right;">
-70
+0.0223
 </td>
 </tr>
 </tbody>
 </table>
-</div>
-<p><img src="/r-can-do-that/pot-stock-market-temporal-analysis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Looking at the alpha values of our stocks, we see some with clearly higher growth ratios of Alpha, and Annualized Alpha, with the APHQF (Aphria Inc.), which grows and distributes pharmaceutical pot.</p>
+<p><img src="/r-can-do-that/pot-stock-market-temporal-analysis_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Looking at the Beta, or risk values, we see that most of the companies are considered low-risk against the ETF, with the exception of two: IIPR and CGC.</p>
+<p><img src="/r-can-do-that/pot-stock-market-temporal-analysis_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>This has provided a few insights into any further financial analysis, and I’ve learned that a) the finance world is immensely jargony, and b) I need to do FAR more homework before being able to say more than a simple causal analysis!</p>
 </div>
 </div>

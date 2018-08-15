@@ -1,0 +1,91 @@
+---
+title: "key-ratio-analysis-pot-stocks"
+author: "Corey Pembleton"
+date: "August 15, 2018"
+output: html_document
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(readxl)
+library(tidyquant)
+```
+
+
+## Key Ratios Analysis
+
+We see a fairly volatile situation, although it appears at a glance that the daily closing values are increasing over time. Another useful tool within the ```tidyquant::tq_get()``` library is the ```key.ratios()``` function. The output of this function produces an impressively structured data frame (tibble in fact) of key statistics from each company. This time, I'll limit the date to after 2014.
+
+```{r, cache=TRUE, warning=FALSE}
+weed_key_ratios <- tq_get(c("GWPH", "IIPR", "INSY", "SMG",
+                            "XXII","ZYNE", "CGC", "APHQF", "CRON"), 
+                          get = "key.ratios", from = "2014-01-01")
+```
+
+
+
+```{r, echo=FALSE}
+tribble(~`Key Ratio`, ~Definition,
+        "Financials", "These ratios include gross margin %, operating margin %, EPS, book value per share, and more.",
+        "Profitability", "These ratios include margin as a percentage of sales (gross margin, operating margin, EBT margin, etc) and profitability metrics such as tax rate %, asset turnover, ROA, financial leverage, ROE, return on invested capital, and more.",
+        "Growth", "These ratios include year over year, 3-year average, 5-year average, and 10-year average growth rates for revenue, operating income, net income, and EPS.",
+        "Cash Flow", "These ratios include operating cash flow growth % YOY, free cash flow growth % YOY, capital expenditure as a % of sales, and more.",
+        "Financial Health", "These ratios include balance sheet items as a percentage of total assets and liabilities, and liquidity/financial health metrics such as current ratio, quick ratio, debt/equity, and financial leverage.",
+        "Efficiency Ratios", "These ratios include days sales outstanding, days inventory, inventory turnover, asset turnover and more.",
+        "Valuation Ratios", "These ratios include price to earnings (P/E), price to sales (P/S), price to book (P/B), and price to operating cash flow.") %>% 
+  kableExtra::kable() %>% 
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 11,
+                            full_width = FALSE,
+                            position = "center") %>% 
+  kableExtra::footnote(general = "source: [cran tidyquant](https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ01-core-functions-in-tidyquant.html#key-ratios-key-stats)")
+```
+
+And in within each individual Key Ratio we find 17 more Categories, each with two subsections, profitability and Margin of Sales % (not shown).  
+
+
+```{r, echo=FALSE}
+weed_key_ratios %>% 
+  filter(section == "Profitability") %>% 
+  unnest() %>% 
+  group_by(category) %>% 
+  count(sort = TRUE) %>% 
+  kableExtra::kable() %>% 
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                            font_size = 11,
+                            full_width = FALSE,
+                            position = "float_left") %>% 
+  kableExtra::scroll_box(width = "35%", height = "300px")
+
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+pal <-  wesanderson::wes_palette(8, name = "FantasticFox1", type = "continuous")
+
+weed_key_ratios %>% 
+  filter(section == "Profitability") %>% 
+  unnest() %>% 
+  filter(date > "2013-12-31" & category == "Return on Assets %" & sub.section == "Profitability") %>% 
+  ggplot(aes(x = date, y = value)) +
+  geom_line(aes(col = symbol), lwd = .75) +
+  #facet_wrap(~ symbol, ncol = 2, scale = "free_y") + 
+  theme_tq(base_family = "Lato") +
+  scale_x_date(labels = scales::date_format("%Y"), date_breaks = "1 year") +
+  ggtitle("Percentage of Return on Assets, 2014 - 2018") +
+  scale_fill_continuous(pal = pal) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.text = element_text()) +
+  ylim(-100, 100) +
+  ylab("Return on Assets %") 
+
+```
+
+
+
+
+

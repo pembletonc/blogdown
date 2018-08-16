@@ -1,0 +1,236 @@
+---
+title: " Making Sense of the Census, 2006 - 2011"
+description: "Part 2: Building a tidy dataset"
+author: "Corey Pembleton"
+date: "6/24/2018"
+slug: canadian-census-data-cleaning
+output: html_document
+draft: true
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>Reading Time: 4 minutes</p>
+<div id="purpose" class="section level2">
+<h2>Purpose</h2>
+<p>Before I perform any data tidying, processing and manipulation, I always keep the purpose of the analysis in the front of my mind. For this project, the main purpose is to create a dataset which:</p>
+<ul>
+<li>Combines the 2006 and 2011 census tables of each respective socio-economic component</li>
+<li>Reduces redundancy</li>
+<li>Is effective for spatial and aspatial analysis at multiple scales (e.g. national and local)</li>
+<li>Follows the dictums of the tidy data principles</li>
+</ul>
+<div id="canadian-census-descriptions" class="section level3">
+<h3>Canadian Census Descriptions</h3>
+<p>A good place to start is by getting to know the data, inside and out, and a good question when working with any census data is knowing the unit which is best suited to the analysis.</p>
+<p>The Canadian census is divided into <a href="https://www150.statcan.gc.ca/n1/pub/92-195-x/2011001/other-autre/hierarch/h-eng.htm">four census geographic units</a>, from the top-down: Provinces and Territories, Census Divisions, Census Subdivisions (roughly a municipality), and Dissimination Areas (population of 400-700). There are also <em>specially-defined geographic units</em>, which include census metropolitan areas (areas with an urban core of at least 100,000), census agglomerations (population between 10,000-100,000), Census Tracts (CT) (population between 2,500 and 8,000, only in areas with a population greater than 50,000) population centres, designated places, and localities (fig. 1). All of these units connect with common keys, and hence are excellent for use in relational database management systems (RDBMS), and for practicing working with them.</p>
+<div class="figure">
+<img src="/img/census-profile1.jpg" alt="Hierarchy of standard geographic units for dissemination, 2011 Census" />
+<p class="caption">Hierarchy of standard geographic units for dissemination, 2011 Census</p>
+</div>
+<p>The dataset which meets the above criteria must be fine enough to give insights within municipalities, while also broad enough to allow for national-level comparison and computation; hence the Census Tract (CT) is an ideal size, and will be used for this analysis.</p>
+</div>
+</div>
+<div id="processing" class="section level2">
+<h2>Processing</h2>
+<p>In total, I have assembled 13 census tables derived from shapefiles at the Census Tract level: 7 from 2006 and 6 from 2011. Both table sets contain descriptive information, such as census identifier fields and the specific variables relevent to their topic (Table 1).</p>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:300px; overflow-x: scroll; width:100%; ">
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-2">Table 1: </span>2006 and 2011 Census Data Descriptions According to Data Dictionary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Table
+</th>
+<th style="text-align:left;">
+Description
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011 Age and Income
+</td>
+<td style="text-align:left;">
+Total population in CTs across Canada and income levels
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011 Education and Labour
+</td>
+<td style="text-align:left;">
+Level of education in CTs, disaggregated by education level, employment status and labour type
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011 Immigration
+</td>
+<td style="text-align:left;">
+Immigration and Ethnic Diversity, including generational information
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011 Language
+</td>
+<td style="text-align:left;">
+All language spoken in households
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011 Marriage, Family, and Household
+</td>
+<td style="text-align:left;">
+Marriage, dwelling, and housing type and status
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011 Mobility
+</td>
+<td style="text-align:left;">
+Mobility status disaggregated by migration and moving status
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 Age
+</td>
+<td style="text-align:left;">
+Total population in CTs across Canada and income levels
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 Education
+</td>
+<td style="text-align:left;">
+Level of education in CTs, disaggregated by education level
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 Ethnicity
+</td>
+<td style="text-align:left;">
+Disaggregated population statistics on level of education
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 First Nations
+</td>
+<td style="text-align:left;">
+Immigration and Ethnic Diversity, including generational information
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 Immigration
+</td>
+<td style="text-align:left;">
+Total population, disaggregated by Aboriginal Identity
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 Income
+</td>
+<td style="text-align:left;">
+Income levels, by gender, median and mean calculations
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2006 Marriage, Family and Household
+</td>
+<td style="text-align:left;">
+2006 Marriage, dwelling, and housing type and status
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Now that we know what the data consists of, processing can begin by importing the data from github and selecting the desired variables to be included in the database. Census data is impressively detailed, it is in fact too detailed for what the analysis later will require so some highly subjective variable selection will be needed (and no doubt can be criticized).</p>
+<p>The tidying process consists of a first, tedius task which, as far as I know, cannot be automated: selecting desired variables from each table, for each year, and joining them together. Luckily, StatsCan has a detailed data dictionary which provided the descriptions of each variable, to help the selection process on which variables are desirable to keep in the final database.</p>
+<p>After examining the datasets alongside the data dictionary, I ended up with a table containing 68 variables at the Census Tract level for all of Canada for 2006 and 2011.</p>
+<pre class="r"><code>glimpse(Census_2011)</code></pre>
+<pre><code>## Observations: 5,452
+## Variables: 64
+## $ CTUID                     &lt;chr&gt; &quot;6020048.00&quot;, &quot;5350612.13&quot;, &quot;5210015...
+## $ GEOGRAPHY                 &lt;chr&gt; &quot;6020048.00&quot;, &quot;5350612.13&quot;, &quot;5210015...
+## $ CMANAME                   &lt;chr&gt; &quot;Winnipeg&quot;, &quot;Toronto&quot;, &quot;Kingston&quot;, &quot;...
+## $ PRNAME                    &lt;chr&gt; &quot;Manitoba&quot;, &quot;Ontario&quot;, &quot;Ontario&quot;, &quot;O...
+## $ POP_PERC_CHANGE           &lt;dbl&gt; 10.7, -3.1, -4.0, 6.3, 3.7, -5.4, 32...
+## $ POP_DENSITY_KM2           &lt;dbl&gt; 4644.3, 3234.2, 1915.3, 32.3, 1582.6...
+## $ PERC_POP_OVER_15          &lt;dbl&gt; 80.0, 85.9, 87.4, 79.5, 88.0, 91.6, ...
+## $ MEDIAN_AGE                &lt;dbl&gt; 36.7, 44.1, 47.1, 41.8, 49.3, 50.8, ...
+## $ YEAR                      &lt;chr&gt; &quot;2011&quot;, &quot;2011&quot;, &quot;2011&quot;, &quot;2011&quot;, &quot;201...
+## $ Population                &lt;dbl&gt; 5034, 3924, 3142, 4985, 2771, 6469, ...
+## $ Participation             &lt;dbl&gt; 73.1, 66.5, 55.0, 70.0, 56.4, 58.9, ...
+## $ UNEMPLOYMENT              &lt;dbl&gt; 6.5, 9.2, 5.5, 4.7, 6.4, 6.7, 6.5, 9...
+## $ COMMUTE_TRANSIT           &lt;int&gt; 465, 265, 35, 0, 155, 510, 65, 240, ...
+## $ COMMUTE_WALK              &lt;int&gt; 65, 40, 45, 50, 30, 155, 205, 210, 3...
+## $ COMMUTE_CYCLE             &lt;int&gt; 30, 10, 0, 0, 0, 25, 0, 40, 0, 25, 0...
+## $ COMMUTE_TIME              &lt;dbl&gt; 20.4, 25.3, 15.2, 20.6, 30.0, 15.7, ...
+## $ NO_EDU                    &lt;dbl&gt; 1220, 350, 500, 715, 475, 1475, 1345...
+## $ HIGHSCHOOL                &lt;dbl&gt; 1185, 860, 600, 1180, 775, 1205, 112...
+## $ UNIVERSITY                &lt;dbl&gt; 660, 1950, 1145, 945, 990, 1150, 675...
+## $ COMMUTE_CAR               &lt;dbl&gt; 2070, 1445, 1280, 2315, 990, 2305, 2...
+## $ COLLEGE                   &lt;dbl&gt; 1020, 650, 965, 1350, 520, 1975, 176...
+## $ MARRIED_COMMON            &lt;dbl&gt; 2020, 2020, 1545, 2795, 1260, 2600, ...
+## $ NOT_MARRIED               &lt;dbl&gt; 2010, 1350, 1200, 1165, 1175, 3335, ...
+## $ CHILDREN                  &lt;dbl&gt; 1785, 1415, 815, 1720, 700, 1075, 20...
+## $ CHILDREN_AVG              &lt;dbl&gt; 1.4, 1.3, 0.9, 1.2, 1.0, 0.7, 1.1, 0...
+## $ SINGLE_DETACHED           &lt;int&gt; 1735, 850, 840, 1540, 525, 425, 1705...
+## $ APARTMENT_5_GREATER       &lt;dbl&gt; 0, 140, 130, 0, 450, 125, 0, 150, 0,...
+## $ MOBILE_HOME               &lt;int&gt; 0, 0, 0, 145, 0, 0, 35, 0, 0, 0, 0, ...
+## $ SEMI_DET                  &lt;int&gt; 25, 0, 55, 5, 95, 60, 275, 10, 220, ...
+## $ ROW_HOUSE                 &lt;int&gt; 10, 65, 215, 40, 40, 25, 110, 0, 130...
+## $ APARTMENT1                &lt;int&gt; 55, 5, 40, 5, 70, 455, 50, 235, 55, ...
+## $ APARTMENT_5_LESS          &lt;dbl&gt; 10, 345, 70, 10, 120, 2495, 30, 815,...
+## $ PPL_IN_HOUSEHOLD          &lt;dbl&gt; 2.7, 2.8, 2.3, 2.8, 2.1, 1.7, 2.7, 1...
+## $ ENGLISH                   &lt;dbl&gt; 3065, 2905, 2575, 4320, 1940, 65, 50...
+## $ FRENCH                    &lt;dbl&gt; 40, 85, 65, 45, 30, 5975, 5785, 2050...
+## $ ABORIGINAL                &lt;int&gt; 40, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0,...
+## $ OTHER_LANG                &lt;dbl&gt; 1600, 880, 420, 600, 725, 130, 155, ...
+## $ INTERNAL_MIGRANTS         &lt;int&gt; 55, 80, 55, 225, 70, 80, 435, 75, 17...
+## $ EXTERNAL_MIGRANTS         &lt;int&gt; 150, 25, 0, 15, 30, 0, 0, 0, 0, 70, ...
+## $ NORTH_AMERICAN_ABORIGINAL &lt;int&gt; 545, 35, 80, 80, 15, 85, 215, 100, 1...
+## $ CDN_CITIZEN               &lt;dbl&gt; 4235, 3745, 3180, 4915, 2620, 6040, ...
+## $ NOT_CITIZEN               &lt;int&gt; 795, 180, 40, 70, 180, 115, 45, 35, ...
+## $ NON_IMMIGRANTS            &lt;dbl&gt; 3330, 2835, 2660, 4375, 1775, 5785, ...
+## $ IMMIGRANTS                &lt;dbl&gt; 1695, 1060, 550, 600, 1020, 365, 220...
+## $ NOT_A_VISI                &lt;dbl&gt; 3050, 3485, 3045, 4925, 2075, 5815, ...
+## $ VISIBLE_MINORITY          &lt;dbl&gt; 1980, 445, 170, 55, 725, 345, 275, 9...
+## $ CHINESE                   &lt;int&gt; 0, 60, 50, 0, 335, 15, 0, 0, 35, 135...
+## $ BLACK                     &lt;int&gt; 65, 50, 0, 20, 50, 160, 85, 55, 105,...
+## $ SOUTH_ASIA                &lt;int&gt; 0, 125, 40, 30, 150, 0, 0, 0, 25, 46...
+## $ LATIN_AMER                &lt;int&gt; 0, 30, 65, 0, 55, 95, 120, 30, 90, 6...
+## $ FILIPINO                  &lt;int&gt; 1675, 45, 0, 0, 0, 0, 0, 0, 0, 315, ...
+## $ ARAB                      &lt;int&gt; 0, 0, 0, 0, 35, 55, 70, 0, 35, 45, 0...
+## $ SOUTHEAST_ASIAN           &lt;int&gt; 155, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2...
+## $ WEST_ASIAN                &lt;int&gt; 0, 45, 0, 0, 30, 0, 0, 0, 50, 145, 0...
+## $ KOREAN                    &lt;int&gt; 0, 25, 0, 0, 0, 0, 0, 0, 0, 80, 50, ...
+## $ JAPANESE                  &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0,...
+## $ BUDDHIST                  &lt;int&gt; 80, 0, 0, 0, 55, 15, 0, 0, 0, 25, 0,...
+## $ CHRISTIAN                 &lt;dbl&gt; 3670, 2880, 2280, 3785, 1955, 5540, ...
+## $ HINDU                     &lt;int&gt; 0, 40, 20, 0, 45, 0, 0, 0, 0, 170, 0...
+## $ JEWISH                    &lt;int&gt; 40, 50, 35, 0, 15, 20, 0, 0, 30, 35,...
+## $ MUSLIM                    &lt;int&gt; 0, 100, 0, 0, 45, 60, 65, 0, 135, 57...
+## $ SIKH                      &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 95, 18...
+## $ ABORIGINAL_REL            &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+## $ NO_REL                    &lt;dbl&gt; 1235, 850, 870, 1150, 655, 530, 630,...</code></pre>
+<p>This provide a solid basis to begin any additional tidying necessary, and then the processing, analysis and visualisation.</p>
+</div>
+<div id="tidying" class="section level2">
+<h2>Tidying</h2>
+<p>The datasets created are missing a single component: they are not combined into a single dataset.</p>
+</div>

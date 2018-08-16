@@ -1,0 +1,54 @@
+---
+title: " Making Sense of the Census, 2006 - 2011"
+description: "Part 1: Creating the dataset"
+author: "Corey Pembleton"
+date: "6/18/2018"
+slug: canadian-census-data-shp-to-csv-conversion
+output: html_document
+---
+
+
+
+<p>Reading Time: 2 minutes</p>
+<div id="what-is-the-census-and-why-is-this-useful" class="section level2">
+<h2>What is the census and why is this useful?</h2>
+<p>The best way to get to know a country and its social, economic, and political makeup is through exploring its census data. The census is a highly valuable, free to access resource on socio-economic data at the national level such as income, education, immigration, labour force participation, and language. It is disaggregated at multiple spatial scales and by age, sex, and location.</p>
+<p>Making the most of this data requires having an understanding of each topical table, and adequately preparing the data for many analytical purposes.</p>
+<p>For reproducibility, this analysis will be broken down in two posts, this one, which isn’t reproducible, and a <a href="www.example.com">second</a> which is. In this post, I will convert census .shp files from my local harddrive into .csv, and push them to github.</p>
+<pre class="r"><code>library(rgdal)
+library(tidyverse)</code></pre>
+<p>Using the <code>rgdal</code> and <code>tidyverse</code> libraries, we can first extract only the tables (due to the shapefiles being too large) from six of the main Canadian census tables (Age, Education, Immigration, Language, Marriage, Families and Household, and Mobility) from both the 2006 and 2011 Canadian Censuses.</p>
+<p>Create tibbles from the shapefiles using <code>as.tibble()</code> and <code>readOGR()</code></p>
+<pre class="r"><code>CAN_06_CT_AGE &lt;- as.tibble(readOGR(&quot;./CT_Data/2006&quot;, &quot;AgeSex_CT_CAN&quot;))
+CAN_06_CT_EDU &lt;- as.tibble(readOGR(&quot;./CT_Data/2006&quot;, &quot;Labour_Occupation_Education_CT_CAN&quot;))
+CAN_06_CT_IMMI &lt;- as.tibble(readOGR(&quot;./CT_Data/2006&quot;, &quot;Language_Immigration_Citizenship_CT_CAN&quot;))
+CAN_06_CT_MFH &lt;- as.tibble(readOGR(&quot;./CT_Data/2006&quot;, &quot;Marital_Families_Households_CT_CAN&quot;))
+CAN_06_CT_ETH &lt;- as.tibble(readOGR(&quot;./CT_Data/2006&quot;, &quot;Ethnic_Origins_Minorities_CT_CAN&quot;))
+CAN_06_CT_FN &lt;- as.tibble(readOGR(&quot;./Ct_Data/2006&quot;, &quot;Aboriginal_CT_CAN&quot;))
+CAN_06_CT_INC &lt;- as.tibble(readOGR(&quot;./Ct_Data/2006&quot;, &quot;Income_Earnings_CT_CAN&quot;))
+CAN_11_CT_AGE &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_age_total_joined&quot;))
+CAN_11_CT_EDU &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_edu_total&quot;))
+CAN_11_CT_IMMI &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_immi_total&quot;))
+CAN_11_CT_LANG &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_lang_total&quot;))
+CAN_11_CT_MFH &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_mfh_total&quot;))
+CAN_11_CT_MOB &lt;- as.tibble(readOGR(&quot;./CT_Data/2011&quot;, &quot;ct_mob_total&quot;))</code></pre>
+<p>Create an export list for processing. Data can be found pushed to <a href="https://github.com/pembletonc/Canada_Demographic_Analysis">this</a> repository.</p>
+<pre class="r"><code>mylist &lt;- list(CAN_11_CT_AGE = CAN_11_CT_AGE,
+               CAN_11_CT_EDU = CAN_11_CT_EDU,
+               CAN_11_CT_IMMI = CAN_11_CT_IMMI,
+               CAN_11_CT_LANG = CAN_11_CT_LANG,
+               CAN_11_CT_MFH = CAN_11_CT_MFH,
+               CAN_11_CT_MOB = CAN_11_CT_MOB
+               CAN_06_CT_AGE = CAN_06_CT_AGE,
+               CAN_06_CT_EDU = CAN_06_CT_EDU,
+               CAN_06_CT_IMMI = CAN_06_CT_IMMI,
+               CAN_06_CT_MFH = CAN_06_CT_MFH,
+               CAN_06_CT_ETH = CAN_06_CT_ETH,
+               CAN_06_CT_INC = CAN_06_CT_INC,
+               CAN_06_CT_FN = CAN_06_CT_FN)
+
+for(i in names(mylist)){
+  write_excel_csv(mylist[[i]], paste0(i, &quot;.csv&quot;))
+}</code></pre>
+<p>That’s all for now! Check out the next post to learn about tidying this data to prepare it for analysis.</p>
+</div>

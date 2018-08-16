@@ -4,14 +4,19 @@ description: "Part 1: Creating the dataset"
 author: "Corey Pembleton"
 date: "6/18/2018"
 slug: canadian-census-data-shp-to-csv-conversion
-output:
-  blogdown::html_page:
-    toc: false
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+bytes <- file.size("canadian-census-shp-to-csv.Rmd")
+words <- bytes/10
+minutes <- words/200
+
 ```
+
+Reading Time: `r round(minutes)` minutes  
+
 
 ## What is the census and why is this useful?
 
@@ -70,7 +75,7 @@ for(i in names(mylist)){
 ```
 
 
-That's all for now! Check out the next post where the actual magic happens. 
+That's all for now! Check out the next post to learn about tidying this data to prepare it for analysis.
 
 
 

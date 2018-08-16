@@ -1,19 +1,17 @@
 ---
 title: " Making Sense of the Census, 2006 - 2011"
-description: "Building a tidy dataset"
+description: "Part 2: Building a tidy dataset"
 author: "Corey Pembleton"
 date: "6/24/2018"
 slug: canadian-census-data-cleaning
-output:
-  blogdown::html_page:
-    toc: true
+output: html_document
 draft: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-bytes <- file.size("profiling-ontario-pt-2.Rmd")
+bytes <- file.size("canadian-census-data-cleaning.Rmd")
 words <- bytes/10
 minutes <- words/200
 
@@ -67,29 +65,29 @@ Now that we know what the data consists of, processing can begin by importing th
 
 
 
-```{r, echo=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
-CAN_06_AGE <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_AGE.csv")
-CAN_06_EDU <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_EDU.csv")
-CAN_06_ETH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_ETH.csv")
-CAN_06_FN <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_ETH.csv")
-CAN_06_IMMI <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_IMMI.csv")
-CAN_06_INC <-read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_INC.csv") 
-CAN_06_MFH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_06_CT_MFH.csv")
+```{r, echo=FALSE, warning=FALSE, include=FALSE, cache=TRUE}
+CAN_06_AGE <- read_csv("./CAN_06_CT_AGE.csv")
+CAN_06_EDU <- read_csv("./CAN_06_CT_EDU.csv")
+CAN_06_ETH <- read_csv("./CAN_06_CT_ETH.csv")
+CAN_06_FN <- read_csv("./CAN_06_CT_ETH.csv")
+CAN_06_IMMI <- read_csv("./CAN_06_CT_IMMI.csv")
+CAN_06_INC <-read_csv("./CAN_06_CT_INC.csv") 
+CAN_06_MFH <- read_csv("./CAN_06_CT_MFH.csv")
 
-CAN_11_AGE <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_AGE.csv")
-CAN_11_EDU <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_EDU.csv")
-CAN_11_LANG <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_LANG.csv")
-CAN_11_MFH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MFH.csv")
-CAN_11_MOB <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MOB.csv")
+CAN_11_AGE <- read_csv("./CAN_11_CT_AGE.csv")
+CAN_11_EDU <- read_csv("./CAN_11_CT_EDU.csv")
+CAN_11_LANG <- read_csv("./CAN_11_CT_LANG.csv")
+CAN_11_MFH <- read_csv("./CAN_11_CT_MFH.csv")
+CAN_11_MOB <- read_csv("./CAN_11_CT_MOB.csv")
 ```
 
-```{r echo=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
-CAN_11_AGE <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_AGE.csv")
-CAN_11_EDU <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_EDU.csv")
-CAN_11_LANG <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_LANG.csv")
-CAN_11_MFH <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MFH.csv")
-CAN_11_MOB <- read_csv("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MOB.csv")
-CAN_11_IMMI <- read_CSV("https://raw.githubusercontent.com/pembletonc/Canada_Demographic_Analysis/master/CAN_11_CT_MOB.csv")
+```{r echo=FALSE, warning=FALSE, include=FALSE, cache=TRUE}
+CAN_11_AGE <- read_csv("./CAN_11_CT_AGE.csv")
+CAN_11_EDU <- read_csv("./CAN_11_CT_EDU.csv")
+CAN_11_LANG <- read_csv("./CAN_11_CT_LANG.csv")
+CAN_11_MFH <- read_csv("./CAN_11_CT_MFH.csv")
+CAN_11_MOB <- read_csv("./CAN_11_CT_MOB.csv")
+CAN_11_IMMI <- read_csv("./CAN_11_CT_IMMI.csv")
 
 ##make complete 2011 table
 
@@ -143,8 +141,9 @@ The tidying process consists of a first, tedius task which, as far as I know, ca
 
 After examining the datasets alongside the data dictionary, I ended up with a table containing 68 variables at the Census Tract level for all of Canada for 2006 and 2011.
 
-```{r, eval=FALSE}
+```{r}
 glimpse(Census_2011)
+
 ```
 
 This provide a solid basis to begin any additional tidying necessary, and then the processing, analysis and visualisation.

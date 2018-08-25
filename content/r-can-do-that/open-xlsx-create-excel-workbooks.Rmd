@@ -1,0 +1,99 @@
+---
+title: "Creating Custom Microsoft Excel Workbooks"
+author: "Corey Pembleton"
+date: "August 25, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(openxlsx)
+
+bytes <- file.size("open-xlsx-create-excel-workbooks.Rmd")
+words <- bytes/10
+minutes <- words/200
+
+```
+Reading Time: `r round(minutes)` minutes  
+
+## Let them have exce;!
+
+I'm not exactly fundamentally against Microsoft Excel, but I'm not a member of the fan club either, so to speak. Nonetheless, an important component of datascience is a) giving clients their desired output, and b) ensuring it is an output best suited to their needs - and sometimes that means giving an output in the form of an excel workbook. 
+
+## openxlsx to the rescue
+
+```openxlsx``` is a very convenient package which provides a high degree of functionality for created formatted excel workbooks, complete with all the bells and whistles excel users desire, such as expanding columns. wihle you can easily output a list of tibbles with  the ```write.xlsx()``` function, this only provides minimal format options. 
+
+Alternatively, we can take a list of tibbles, e.g.:
+
+```{r}
+list <- list(cars = cars, WorldPhones = WorldPhones, trees = trees, quakes = quakes)
+```
+
+Establish the various styles desired to be mapped across all worksheets. In this case, I want alternating colours in each column with a unique header style.
+
+```{r, warning=FALSE, message=FALSE}
+hs1 <- createStyle(fontColour = "black", halign = "center", fontName = "Arial",
+                   valign = "center", textDecoration = "bold", fgFill = "white",
+                   border = "TopBottomLeftRight")
+
+lightStyle <- createStyle(fontColour = "black", fgFill = "white", halign = "right",
+                          valign = "center")
+
+darkStyle <- createStyle(fontColour = "black", fgFill = "lightgray", 
+                         halign = "right", valign = "center")
+```
+
+Next, create an empty workbook:
+
+```{r}
+wb <- createWorkbook() #create an empty excel workbook
+```
+
+Create a function for processing each of the tibbles into the empty workbook, noting that the order within the functions matters, as styles must be applied following ```writeData()```.
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+Map(function(data, name){ #function to loop through the list of  objects and apply same formatting
+  
+  options("openxlsx.dateFormat" = "dd/mm/yyyy")
+
+  addWorksheet(wb, name)
+  writeData(wb, name, data, borders = c("surrounding"),
+            borderColour = getOption("openxlsx.borderColour", "black"),
+            borderStyle = getOption("openxlsx.borderStyle", "thin"),
+            keepNA = FALSE)
+  colorRows <- 2:(nrow(data)+1)
+  setColWidths(wb, name, cols = 1:ncol(data), widths = "auto")
+  
+  addStyle(wb, name, hs1, cols = 1:ncol(data), rows = 1, gridExpand = FALSE)
+  
+  addStyle(wb, name, lightStyle, rows  = colorRows[which(colorRows %% 2 == 0)],
+           cols = 1:ncol(data), gridExpand = TRUE)
+  
+  addStyle(wb, name, darkStyle, rows  = colorRows[which(colorRows %% 2 == 1)],
+           cols = 1:ncol(data), gridExpand = TRUE)
+  
+    }, list, names(list))
+
+```
+
+And lastly, save the desired output:
+
+```{r, eval=FALSE}
+saveWorkbook(wb, "excel_workbook.xlsx", TRUE)
+```
+
+Which gives a lovely formatted excel workbook:
+
+![](/img/open-xlsx-example.png)
+
+I got most of the information for this blog from the very helpful ```openxlsx``` vignettes, from stackoverflow responses, and the idea for mapping the function from a post on Rbloggers. I have to say, my work received immediate postive feedback from clients and colleagues who were very weary about recieving completely unformatted .csv files from me! 
+
+
+
+
+
+
+

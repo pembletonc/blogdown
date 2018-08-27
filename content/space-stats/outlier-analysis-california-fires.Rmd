@@ -1,0 +1,218 @@
+---
+title: 'Tidy Tuesday #X: Statistical Outliers of California Fires'
+author: "Corey Pembleton"
+date: "August 26, 2018"
+output: html_document
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+bytes <- file.size("outlier-analysis-california-fires.Rmd")
+words <- bytes/10
+minutes <- words/200
+
+library(tidyverse)
+library(lubridate)
+library(janitor) 
+library(scales)
+library(ruler)
+```
+
+Reading Time: `r round(minutes)` minutes  
+
+## 
+
+
+
+```{r}
+#load the data into a tibble
+fire_data <-  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018-08-21/cal-fire-incidents.csv"
+  
+```
+
+()[http://www.questionflow.org/2017/12/26/combined-outlier-detection-with-dplyr-and-ruler/]
+
+```{r}
+#function creation----
+#define what isn't an outlier based on z-score
+#"Observation is not an outlier based on z-score if its absolute value of default 
+#z-score is lower then some threshold '
+
+not_out_z <- function(x, thres = 3, na.rm =TRUE) {
+  abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) 
+}
+
+#define what isnt' an outlier based on mad
+#Observation is not an outlier based on MAD if its absolute value of z-score with median as center and MAD as normalization unit is lower then some threshold (popular choice is 3).
+
+not_out_mad <- function(x, thres = 3, na.rm = TRUE){
+  abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm)
+}
+
+#define what isn't an outlier based on Tukey's fences
+
+not_out_tukey <- function(x, k = 1.5, na.rm = TRUE) {
+  quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
+  iqr <- diff(quar)
+  (quar[1] - k * iqr <= x) & (x <= quar[2] + k * iqr)
+}
+
+maha_dist <- . %>% select_if(is.numeric) %>% 
+  mahalanobis(center = colMeans(.), cov = cov(.))
+
+not_out_maha <- function(tbl, not_out_f, ...) {
+  tbl %>% maha_dist() %>% not_out_f(...)
+}
+
+not_outlier_funs <- funs(
+  z = not_out_z,
+  mad = not_out_mad,
+  tukey = not_out_tukey
+)
+
+```
+
+
+```{r}
+fire_data %>%   
+  transmute_if(is.numeric, not_outlier_funs)
+
+fire_data %>% 
+  transmute(maha = maha_dist(.)) %>% 
+  transmute_at(vars(maha = maha), not_outlier_funs)
+
+```
+
+
+```{r}
+data_tbl <- fire_data %>% 
+  unite(col = "group", )
+
+compute_group_non_outliers <- . %>% 
+  group_by(group) %>% 
+  summarise_if(is.numeric, mean) %>% 
+  ungroup() %>% 
+  mutate_if(is.numeric, not_outlier_funs) %>% 
+  select_if(Negate(is.numeric))
+
+compute_group_non_outliers(data_tbl)
+
+
+row_packs_not_out <- row_packs(
+  column = . %>% transmute_if(is.numeric, not_outlier_funs),
+  maha = . %>% transmute(maha = maha_dist(.)) %>% 
+    transmute_at(vars(maha = maha), not_outlier_funs)
+)
+
+group_packs_not_out <- group_packs(
+  group = compute_group_non_outliers,
+  .group_vars = "group"
+)
+
+```
+
+
+```{r}
+full_report <- data_tbl %>% 
+  expose(row_packs_not_out, group_packs_not_out,
+         .remove_obeyers = FALSE) %>% 
+  get_report()
+
+used_rules <- full_report %>% 
+  distinct(pack, rule)
+```
+
+
+
+```{r}
+breaker_report <- full_report %>% 
+  filter(!(value %in% TRUE))
+
+group_breakers <- breaker_report %>% 
+  filter(pack == "group") %>% 
+  select(-id) %>% 
+  left_join(
+    y = data_tbl %>% transmute(var = group, id = 1:n()),
+    by = "var"
+  ) %>% 
+  select(pack, rule, var, id, value)
+
+group_breakers$value
+
+outliers <- bind_rows(
+  breaker_report %>% filter(pack != "group"),
+  group_breakers
+) %>% 
+  select(pack, rule, id)
+
+#we can see how not all group based definitions resulted with outliers
+outliers %>% 
+  count(pack, rule) %>% 
+  filter(pack == "group") %>% 
+  print(n = Inf)
+
+#outliers can tell us the outlier rows
+
+outliers %>% 
+  count(pack, rule, sort = TRUE)
+
+outlier_score <- outliers %>% 
+  group_by(id) %>% 
+  summarise(score = n() / nrow(used_rules))
+
+#top 10 outliers
+
+outlier_score %>% 
+  arrange(desc(score)) %>% 
+  slice(1:10)
+
+#tag outliers as `strong outliers` those with a score of more than 0.2
+
+fire_tbl <- fire_data %>% 
+  mutate(id = 1:n()) %>% 
+  left_join(y = outlier_score, by = "id") %>% 
+  mutate(
+    score = coalesce(score, 0),
+    is_out = if_else(score > 0.3, "Outlier", "Not outlier")
+  )
+
+```
+
+
+```{r}
+extreme_outliers <- time_tbl %>% 
+  filter(score > .3)
+
+```
+
+
+
+```{r}
+theme_set(theme_bw())
+
+plot_outliers <- function(tbl, x, y, facet_var) {
+  tbl %>% 
+    arrange(is_out) %>% 
+    ggplot(aes_string(x, y, colour = "is_out")) +
+      geom_point() +
+      facet_wrap(facets = facet_var) +
+      #geom_text(aes(label = Country), data = extreme_outliers, nudge_y = 2, alpha = 0.5)+
+      #ggrepel::geom_text_repel(aes(label = Country), data = extreme_outliers, label.size = 0, size = 2, alpha = 0.8)+
+    scale_colour_manual(values = c("#AAAAAA", "#004080"))+
+      guides(colour = guide_legend(title = NULL,
+                                   override.aes = list(size = 4)))+
+      theme_minimal(base_family = "Lato") + 
+      labs(title = paste0("Strong outliers illustrated by ", facet_var ))+
+      theme(legend.position = "bottom",
+            legend.text = element_text(size = 10),
+            legend.title = element_text(size = 10),
+            axis.ticks = element_blank(),
+            panel.border = element_blank()) +
+      theme(axis.text.x = element_blank()) +
+    theme(axis.text.x = element_text(size = 8, angle = 45)) 
+}
+```
+
+

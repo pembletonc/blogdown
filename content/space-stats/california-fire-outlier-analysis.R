@@ -189,14 +189,12 @@ extreme_outliers <- fire_data %>%
 
 #plot it out
 
-typeof(fire_data_outliers$year)
-
-
 
 fire_data_outliers %>% 
 ggplot(aes_string("year", "structures", colour = "is_out")) +
-  geom_point(data = fire_data_outliers, aes(size = scale(structures))) +
+  geom_point(data = fire_data_outliers, aes(size = structures)) +
   scale_colour_manual(values = c("#AAAAAA", "#004080")) +
+  scale_x_continuous(breaks = seq(1989, 2017, by = 2), expand = expand_scale(mult = c(.1, .1))) +
   guides(colour = guide_legend(title = NULL,
                                override.aes = list(size = 4))) +
   labs(title = "Strong outliers illustration by ") +
@@ -206,8 +204,9 @@ ggplot(aes_string("year", "structures", colour = "is_out")) +
   theme(legend.position = "bottom",
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 10),
-        #axis.ticks = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank(),
         panel.border = element_blank(),
-        #axis.text.x = element_blank(),
-        axis.text.x = element_text(size = 10)
+        axis.text.x = element_text(size = 10, angle = 45)
   )
+

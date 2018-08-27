@@ -25,14 +25,25 @@ Reading Time: `r round(minutes)` minutes
 ## 
 
 
-
-```{r}
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
 #load the data into a tibble
-fire_data <-  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018-08-21/cal-fire-incidents.csv"
-  
+fire_incidents <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018-08-21/cal-fire-incidents.csv")
+
+fire_damage <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018-08-21/calfire_damage.csv")
+
 ```
 
-()[http://www.questionflow.org/2017/12/26/combined-outlier-detection-with-dplyr-and-ruler/]
+```{r, message=FALSE, warning=FALSE,}
+fire_data <- fire_damage %>% 
+  left_join(fire_incidents, by = c("year" = "YEAR")) %>% 
+  select(year, structures, "number_of_fires" = "NUMBER OF FIRES",
+         "acres_burned" = "ACRES BURNED", "dollar_damage" = "DOLLAR DAMAGE")
+
+```
+
+
+
+[](http://www.questionflow.org/2017/12/26/combined-outlier-detection-with-dplyr-and-ruler/)
 
 ```{r}
 #function creation----
@@ -71,24 +82,12 @@ not_outlier_funs <- funs(
   mad = not_out_mad,
   tukey = not_out_tukey
 )
-
 ```
 
 
-```{r}
-fire_data %>%   
-  transmute_if(is.numeric, not_outlier_funs)
-
-fire_data %>% 
-  transmute(maha = maha_dist(.)) %>% 
-  transmute_at(vars(maha = maha), not_outlier_funs)
-
-```
-
-
-```{r}
+```{r, message=FALSE, warning=FALSE}
 data_tbl <- fire_data %>% 
-  unite(col = "group", )
+  unite(col = "group", year)
 
 compute_group_non_outliers <- . %>% 
   group_by(group) %>% 
@@ -96,9 +95,6 @@ compute_group_non_outliers <- . %>%
   ungroup() %>% 
   mutate_if(is.numeric, not_outlier_funs) %>% 
   select_if(Negate(is.numeric))
-
-compute_group_non_outliers(data_tbl)
-
 
 row_packs_not_out <- row_packs(
   column = . %>% transmute_if(is.numeric, not_outlier_funs),
@@ -126,7 +122,7 @@ used_rules <- full_report %>%
 
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE,}
 breaker_report <- full_report %>% 
   filter(!(value %in% TRUE))
 
@@ -139,8 +135,6 @@ group_breakers <- breaker_report %>%
   ) %>% 
   select(pack, rule, var, id, value)
 
-group_breakers$value
-
 outliers <- bind_rows(
   breaker_report %>% filter(pack != "group"),
   group_breakers
@@ -152,25 +146,21 @@ outliers %>%
   count(pack, rule) %>% 
   filter(pack == "group") %>% 
   print(n = Inf)
+```
 
+
+```{r, message=FALSE, warning=FALSE}
 #outliers can tell us the outlier rows
-
-outliers %>% 
-  count(pack, rule, sort = TRUE)
-
 outlier_score <- outliers %>% 
   group_by(id) %>% 
   summarise(score = n() / nrow(used_rules))
 
-#top 10 outliers
+```
 
-outlier_score %>% 
-  arrange(desc(score)) %>% 
-  slice(1:10)
-
+```{r, message=FALSE, warning=FALSE}
 #tag outliers as `strong outliers` those with a score of more than 0.2
 
-fire_tbl <- fire_data %>% 
+fire_data_outliers <- fire_data %>% 
   mutate(id = 1:n()) %>% 
   left_join(y = outlier_score, by = "id") %>% 
   mutate(
@@ -181,38 +171,33 @@ fire_tbl <- fire_data %>%
 ```
 
 
-```{r}
-extreme_outliers <- time_tbl %>% 
-  filter(score > .3)
-
+```{r, message=FALSE, warning=FALSE,}
+extreme_outliers <- fire_data_outliers %>% 
+  filter(score > .2)
 ```
 
 
 
-```{r}
-theme_set(theme_bw())
-
-plot_outliers <- function(tbl, x, y, facet_var) {
-  tbl %>% 
-    arrange(is_out) %>% 
-    ggplot(aes_string(x, y, colour = "is_out")) +
-      geom_point() +
-      facet_wrap(facets = facet_var) +
-      #geom_text(aes(label = Country), data = extreme_outliers, nudge_y = 2, alpha = 0.5)+
-      #ggrepel::geom_text_repel(aes(label = Country), data = extreme_outliers, label.size = 0, size = 2, alpha = 0.8)+
-    scale_colour_manual(values = c("#AAAAAA", "#004080"))+
-      guides(colour = guide_legend(title = NULL,
-                                   override.aes = list(size = 4)))+
-      theme_minimal(base_family = "Lato") + 
-      labs(title = paste0("Strong outliers illustrated by ", facet_var ))+
-      theme(legend.position = "bottom",
-            legend.text = element_text(size = 10),
-            legend.title = element_text(size = 10),
-            axis.ticks = element_blank(),
-            panel.border = element_blank()) +
-      theme(axis.text.x = element_blank()) +
-    theme(axis.text.x = element_text(size = 8, angle = 45)) 
-}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+fire_data_outliers %>% 
+ggplot(aes_string("year", "structures", colour = "is_out")) +
+  geom_point(data = fire_data_outliers, aes(size = structures)) +
+  scale_colour_manual(values = c("#AAAAAA", "#004080")) +
+  scale_x_continuous(breaks = seq(1989, 2017, by = 2), expand = expand_scale(mult = c(.1, .1))) +
+  guides(colour = guide_legend(title = NULL,
+                               override.aes = list(size = 4))) +
+  labs(title = "Strong outliers illustration by ") +
+  theme_minimal(base_family = "Lato") + 
+  labs(title = "Strong outliers illustrated by number of \nstructures destroyed in California Fires") +
+  ylab("# of structures destroyed") +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 10),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        axis.text.x = element_text(size = 10, angle = 45)
+  )
 ```
 
 

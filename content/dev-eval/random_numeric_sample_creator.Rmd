@@ -1,0 +1,72 @@
+---
+title: "Creating a Random Numeric Sample"
+author: "Corey Pembleton"
+date: '2018-10-13'
+output: html_document
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(tidyverse)
+library(kableExtra)
+
+```
+
+```{r, echo=FALSE}
+Portfolio <- read_excel("Sample_Sample.xlsx", sheet = 1)
+```
+
+In this post, I create a randomized sample based upon the proportional representation of a given group, something which often arises in development monitoring and evaluation studies.
+
+I wasn't so sure how to go about doing this smoothly in a tidy way, until I found [this post](https://jennybc.github.io/purrr-tutorial/ls12_different-sized-samples.html) by Jenny Bryan, which helped guide me along the way, and taught me a few new tricks such as the value of nesting and unnesting dataframes, and using the ```map2()``` purrr function within a tidy workflow.
+
+In the post which this draws from the sample size is determined according to counts of select variable groups. Here I opt for a proportional approach representative of the groups of the population, in this case by regional representation. 
+
+Below, I determine the proportion of the population (country_total) based on a 30% sample size (sample_count).
+
+```{r, results='hide'}
+Portfolio %>% 
+  group_by(Region) %>% 
+  count() %>% 
+  summarise(country_total = n,
+            prop = n/91,
+            sample_count = round(prop*30)) %>%
+  arrange(Region)
+```
+
+
+```{r, echo=FALSE}
+Portfolio %>% 
+    group_by(Region) %>% 
+  count() %>% 
+  summarise(country_total = n,
+            prop = n/91,
+            sample_count = round(prop*30)) %>%
+  arrange(Region) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "100%", height = "300px")
+
+```
+
+Using the results from the country_sample column, I can then select the random sample, which extracts a random sample of the amounts given using a mapped ```sample_n()``` function. each time this is run, it extracts a new random sample, but always with the same given count.
+
+```{r}
+
+Portfolio %>% 
+  arrange(Region) %>% 
+  group_by(Region) %>% 
+  nest() %>% 
+  mutate(n = c(7,0,9,1,13),
+         samp = map2(data, n, sample_n)) %>% 
+  select(Region, samp) %>% 
+  unnest() 
+
+```
+
+The beauty of this approach is its flexibility, and that it is easy to interpret and manipulate according to needs and data sizes.
+
+
+

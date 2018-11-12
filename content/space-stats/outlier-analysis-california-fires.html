@@ -1,0 +1,126 @@
+---
+title: 'Tidy Tuesday Week 21: Statistical Outliers of California Fires'
+author: "Corey Pembleton"
+date: "August 26, 2018"
+output: html_document
+---
+
+
+
+<p>Reading Time: 4 minutes</p>
+<div id="determining-statistically-outlying-fires-in-california" class="section level2">
+<h2>Determining Statistically Outlying Fires in California</h2>
+<p>I saw some interesting weekly projects being created for this tidytuesday exercise, so wanted to take the chance to see if and how the increased prevalence of fires in California are statistically significant or not. By following the very useful approach on <a href="http://www.questionflow.org/2017/12/26/combined-outlier-detection-with-dplyr-and-ruler/">question flow</a> which allows the combination of multiple outlier detection methods to be used in measuring quantitative statistical outliers. This approach follows tidy principles and uses the <code>ruler</code> package, which makes it highly intutive to interpret results and make adjustments to test for robustness of outliers, and include multiple outlier measurement methods.</p>
+<p>The first thing, loading and joining the datasets from the tidytuesday github page:</p>
+<pre class="r"><code>#load the data into a tibble
+fire_incidents &lt;- read_csv(&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018-08-21/cal-fire-incidents.csv&quot;)
+
+fire_damage &lt;- read_csv(&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018-08-21/calfire_damage.csv&quot;)</code></pre>
+<pre class="r"><code>fire_data &lt;- fire_damage %&gt;% 
+  left_join(fire_incidents, by = c(&quot;year&quot; = &quot;YEAR&quot;)) %&gt;% 
+  select(year, structures, &quot;number_of_fires&quot; = &quot;NUMBER OF FIRES&quot;,
+         &quot;acres_burned&quot; = &quot;ACRES BURNED&quot;, &quot;dollar_damage&quot; = &quot;DOLLAR DAMAGE&quot;)</code></pre>
+<p>The first step is determining what values will NOT be considered as outliers by three rules:</p>
+<div id="outlier-rule-1-z-score-threshold" class="section level3">
+<h3>Outlier Rule 1: Z-score Threshold</h3>
+<pre class="r"><code>#function creation----
+#define what isn&#39;t an outlier based on z-score
+#&quot;Observation is not an outlier based on z-score if its absolute value of default 
+#z-score is lower then some threshold &#39;
+
+not_out_z &lt;- function(x, thres = 3, na.rm =TRUE) {
+  abs(x - mean(x, na.rm = na.rm)) &lt;= thres * sd(x, na.rm = na.rm) 
+}</code></pre>
+</div>
+<div id="outlier-rule-2-median-absolute-deviation-mad-threshold" class="section level3">
+<h3>Outlier Rule 2: Median Absolute Deviation (MAD) threshold</h3>
+<p>This rule dictates: &gt; “<em>If the observation is not an outlier based on MAD if its absolute value of z-score with median as center and MAD as normalization unit is lower then some threshold (popular choice is 3)</em>.”</p>
+<pre class="r"><code>not_out_mad &lt;- function(x, thres = 3, na.rm = TRUE){
+  abs(x - median(x, na.rm = na.rm)) &lt;= thres * mad(x, na.rm = na.rm)
+}</code></pre>
+</div>
+<div id="outlier-rule-3-tukeys-fences-threshold" class="section level3">
+<h3>Outlier Rule 3: Tukey’s Fences threshold</h3>
+<p>Using Tukey’s fences, values considered not to be outliers must fall within the interquantile range set.</p>
+<pre class="r"><code>not_out_tukey &lt;- function(x, k = 1.5, na.rm = TRUE) {
+  quar &lt;- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
+  iqr &lt;- diff(quar)
+  (quar[1] - k * iqr &lt;= x) &amp; (x &lt;= quar[2] + k * iqr)
+}</code></pre>
+</div>
+<div id="outlier-rule-4-mahalanobis-centre-distance" class="section level3">
+<h3>Outlier Rule 4: Mahalanobis Centre Distance</h3>
+<p>Values considered to fall within the Mahalanobis centre will not be considered to be outliers.</p>
+<pre class="r"><code>maha_dist &lt;- . %&gt;% select_if(is.numeric) %&gt;% 
+  mahalanobis(center = colMeans(.), cov = cov(.))
+
+not_out_maha &lt;- function(tbl, not_out_f, ...) {
+  tbl %&gt;% maha_dist() %&gt;% not_out_f(...)
+}</code></pre>
+</div>
+<div id="creating-group-packs-of-variables-not-considered-to-be-outliers" class="section level3">
+<h3>Creating group “packs” of variables not considered to be outliers</h3>
+<p>Following the creation of rules, the subsequent stage is labelling from our dataset which values are not considered outliers according to the values relative assignment based on each of the rules. The <code>ruler</code> package does this through the creation of row or column packs, which is a variation on the “nesting” structure of grouped data within the <code>purrr::nest()</code> family of functions.</p>
+<p>Once we can group our variables according to each of the outlier function, I can produce the final report on which points are statistical outliers, and which are not:</p>
+<pre class="r"><code>full_report &lt;- data_tbl %&gt;% 
+  expose(row_packs_not_out, group_packs_not_out,
+         .remove_obeyers = FALSE) %&gt;% 
+  get_report()
+
+used_rules &lt;- full_report %&gt;% 
+  distinct(pack, rule)</code></pre>
+<p>Which, in turn, lets me determine who is “breaking” the rule of NOT being an outlier (through filter the logical value):</p>
+<pre class="r"><code>breaker_report &lt;- full_report %&gt;% 
+  filter(!(value %in% TRUE))
+
+group_breakers &lt;- breaker_report %&gt;% 
+  filter(pack == &quot;group&quot;) %&gt;% 
+  select(-id) %&gt;% 
+  left_join(
+    y = data_tbl %&gt;% transmute(var = group, id = 1:n()),
+    by = &quot;var&quot;
+  ) %&gt;% 
+  select(pack, rule, var, id, value)
+
+outliers &lt;- bind_rows(
+  breaker_report %&gt;% filter(pack != &quot;group&quot;),
+  group_breakers
+) %&gt;% 
+  select(pack, rule, id)
+
+#we can see how not all group based definitions resulted with outliers
+outliers %&gt;% 
+  count(pack, rule) %&gt;% 
+  filter(pack == &quot;group&quot;) %&gt;% 
+  print(n = Inf)</code></pre>
+<pre><code>## # A tibble: 12 x 3
+##    pack  rule                      n
+##    &lt;chr&gt; &lt;chr&gt;                 &lt;int&gt;
+##  1 group acres_burned_mad          2
+##  2 group acres_burned_tukey        3
+##  3 group acres_burned_z            1
+##  4 group dollar_damage_mad         4
+##  5 group dollar_damage_tukey       4
+##  6 group dollar_damage_z           2
+##  7 group number_of_fires_mad       1
+##  8 group number_of_fires_tukey     1
+##  9 group number_of_fires_z         1
+## 10 group structures_mad            7
+## 11 group structures_tukey          4
+## 12 group structures_z              1</code></pre>
+<pre class="r"><code>#tag outliers as `strong outliers` those with a score of more than 0.2
+
+fire_data_outliers &lt;- fire_data %&gt;% 
+  mutate(id = 1:n()) %&gt;% 
+  left_join(y = outlier_score, by = &quot;id&quot;) %&gt;% 
+  mutate(
+    score = coalesce(score, 0),
+    is_out = if_else(score &gt; 0.3, &quot;Outlier&quot;, &quot;Not outlier&quot;)
+  )</code></pre>
+<p>Finally, I could determine not just those data points which are outliers, but those which are “extreme outliers”:</p>
+<pre class="r"><code>extreme_outliers &lt;- fire_data_outliers %&gt;% 
+  filter(score &gt; .2)</code></pre>
+<p>And subsequently plot them out: <img src="/space-stats/outlier-analysis-california-fires_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>This study was slightly limited in that the tidytuesday data wasn’t of the same level of detail across both datasets. Nonetheless, it paints an important picture when considering the extent of damage, and how things are changing in California. At the time of writing, large swaths of California (and the world’s forests) continue to burn, with 2018 lining up to undoubtedly be an outlier year.</p>
+</div>
+</div>

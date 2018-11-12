@@ -5,7 +5,6 @@ author: "Corey Pembleton"
 date: "6/24/2018"
 slug: canadian-census-data-cleaning-pt1
 output: html_document
-draft: true
 ---
 
 ```{r setup, include=FALSE}

@@ -1,5 +1,5 @@
 ---
-title: "Creating a Random Numeric Sample"
+title: "Creating a Proportional Random Sample of a Grouped Variable"
 author: "Corey Pembleton"
 date: '2018-10-13'
 output: html_document
@@ -17,7 +17,7 @@ library(kableExtra)
 Portfolio <- read_excel("Sample_example.xlsx", sheet = 1)
 ```
 
-In this post, I create a randomized sample based upon the proportional representation of a given group, something which often arises in development monitoring and evaluation studies.
+In this post, I create a randomized sample based upon the proportional representation of a given group, something which often arises in development monitoring and evaluation studies. An example of this would be when you want to select a certain percentage of projects on a specified group (e.g. thematic area, region, leader responsible) relevant to its proportional size. 
 
 I wasn't so sure how to go about doing this smoothly in a tidy way, until I found [this post](https://jennybc.github.io/purrr-tutorial/ls12_different-sized-samples.html) by Jenny Bryan, which helped guide me along the way, and taught me a few new tricks such as the value of nesting and unnesting dataframes, and using the ```map2()``` purrr function within a tidy workflow.
 
@@ -35,7 +35,9 @@ Portfolio %>%
   arrange(Region)
 ```
 
-Which doesn't need to be saved, I can just copy the values according to their proportion (in this case, I'm aiming for a sample which is 30% of the total population, by Regional representation):
+Which doesn't need to be saved, I can just copy the values according to their proportion (in this case, I'm aiming for a sample which is 30% of the total population, by Regional representation):  
+
+
 ```{r, echo=FALSE}
 Portfolio %>% 
     group_by(Region) %>% 
@@ -50,7 +52,7 @@ Portfolio %>%
 
 ```
 
-Using the results from the country_sample column, I can then select the random sample, which extracts a random sample of the amounts given using a mapped ```sample_n()``` function. each time this is run, it extracts a new random sample, but always with the same given count.
+Using the results from the country_sample column, I can then select the random sample itself. This works by extracting a random sample of the desired amount according to the "sample count" value above (so 7 will be selected from Asia, 9 from LAC, 13 from SSA) using a ```purrr::map()``` of a sample using the ```sample_n()``` function. each time this is run, it extracts a new random sample, but always with the same given count per group.
 
 ```{r, echo = FALSE}
 

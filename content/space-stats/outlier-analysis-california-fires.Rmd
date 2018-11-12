@@ -22,8 +22,11 @@ library(ruler)
 
 Reading Time: `r round(minutes)` minutes  
 
-## 
+## Determining Statistically Outlying Fires in California
 
+I some some interesting weekly projects being created for this tidytuesday exercise, so wanted to take the chance to see if and how the increased prevalence of fired in California was statistically significant or not. By following the very useful approach on [question flow](http://www.questionflow.org/2017/12/26/combined-outlier-detection-with-dplyr-and-ruler/) which allows the combination of multiple outlier detection methods to be used in measuring quantitative statistical outliers. This approach follows tidy principles and uses the ```ruler``` package, which makes it highly intutive to interpret results and make adjustments to test for robustness. 
+
+The first thing, loading and joining the datasets from the tidy github site:
 
 ```{r, message=FALSE, warning=FALSE, cache=TRUE}
 #load the data into a tibble
@@ -41,9 +44,9 @@ fire_data <- fire_damage %>%
 
 ```
 
+The first step is determining what values will NOT be considered as outliers by three rules:
 
-
-[](http://www.questionflow.org/2017/12/26/combined-outlier-detection-with-dplyr-and-ruler/)
+### Outlier Rule 1: z-score threshold
 
 ```{r}
 #function creation----
@@ -55,28 +58,44 @@ not_out_z <- function(x, thres = 3, na.rm =TRUE) {
   abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) 
 }
 
-#define what isnt' an outlier based on mad
-#Observation is not an outlier based on MAD if its absolute value of z-score with median as center and MAD as normalization unit is lower then some threshold (popular choice is 3).
+```
 
+### Outlier Rule 2: Median Absolute Deviation threshold
+
+This rule dictates that if the "*Observation is not an outlier based on MAD if its absolute value of z-score with median as center and MAD as normalization unit is lower then some threshold (popular choice is 3)*."
+
+```{r}
 not_out_mad <- function(x, thres = 3, na.rm = TRUE){
   abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm)
 }
+```
 
-#define what isn't an outlier based on Tukey's fences
+### Outlier Rule 3: Tukey's Fences threshold
 
+Using Tukey's fences, values considered not to be outliers must fall within the interquantile range set.
+
+```{r}
 not_out_tukey <- function(x, k = 1.5, na.rm = TRUE) {
   quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
   iqr <- diff(quar)
   (quar[1] - k * iqr <= x) & (x <= quar[2] + k * iqr)
 }
+```
 
+### Outlier Rule 4: Mahalanobis Centre Distance
+Values considered to fall within the Mahalanobis centre will not be considered to be outliers.
+
+```{r}
 maha_dist <- . %>% select_if(is.numeric) %>% 
   mahalanobis(center = colMeans(.), cov = cov(.))
 
 not_out_maha <- function(tbl, not_out_f, ...) {
   tbl %>% maha_dist() %>% not_out_f(...)
 }
+```
 
+
+```{r, echo=FALSE}
 not_outlier_funs <- funs(
   z = not_out_z,
   mad = not_out_mad,
@@ -84,8 +103,11 @@ not_outlier_funs <- funs(
 )
 ```
 
+### Creating group "packs" of variables not considered to be outliers
 
-```{r, message=FALSE, warning=FALSE}
+Following the creation of rules, the subsequent stage is labelling from our dataset which values are not considered outliers according to each of the rules. The ```ruler``` package does this through the creation of row or column packs
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 data_tbl <- fire_data %>% 
   unite(col = "group", year)
 

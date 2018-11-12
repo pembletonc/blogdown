@@ -1,9 +1,9 @@
 ---
-title: "Cleaning, Gathering, excel_numeric,  and na_if()"
+title: "Cleaning Evaluation Data: Separting Columns, Removing NA's, correcting Excel Numeric Dates"
 author: "Corey Pembleton"
 date: "July 11, 2018"
 output: html_document
-slug: separate-gather-mutate-eval-data
+slug: cleaning-eval-data-pt1
 ---
 
 ```{r setup, include=FALSE}

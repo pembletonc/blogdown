@@ -1,14 +1,15 @@
 ---
-title: "Creating a Random Numeric Sample"
+title: "Creating a Proportional Random Sample of a Grouped Variable"
 author: "Corey Pembleton"
 date: '2018-10-13'
 output: html_document
+slug: proportional-grouped-sampling
 ---
 
 <script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
-<p>In this post, I create a randomized sample based upon the proportional representation of a given group, something which often arises in development monitoring and evaluation studies.</p>
+<p>In this post, I create a randomized sample based upon the proportional representation of a given group, something which often arises in development monitoring and evaluation studies. An example of this would be when you want to select a certain percentage of projects on a specified group (e.g. thematic area, region, leader responsible) relevant to its proportional size.</p>
 <p>I wasn’t so sure how to go about doing this smoothly in a tidy way, until I found <a href="https://jennybc.github.io/purrr-tutorial/ls12_different-sized-samples.html">this post</a> by Jenny Bryan, which helped guide me along the way, and taught me a few new tricks such as the value of nesting and unnesting dataframes, and using the <code>map2()</code> purrr function within a tidy workflow.</p>
 <p>In the post which this draws from the sample size is determined according to counts of select variable groups. Here I opt for a proportional approach representative of the groups of the population, in this case by regional representation.</p>
 <p>Below, I determine the proportion of the population (country_total) based on a 30% sample size (sample_count).</p>
@@ -19,7 +20,7 @@ output: html_document
             prop = n/91,
             sample_count = round(prop*30)) %&gt;%
   arrange(Region)</code></pre>
-Which doesn’t need to be saved, I can just copy the values according to their proportion (in this case, I’m aiming for a sample which is 30% of the total population, by Regional representation):
+<p>Which doesn’t need to be saved, I can just copy the values according to their proportion (in this case, I’m aiming for a sample which is 30% of the total population, by Regional representation):</p>
 <div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:300px; overflow-x: scroll; width:100%; ">
 <table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -112,7 +113,7 @@ SSA
 </tbody>
 </table>
 </div>
-<p>Using the results from the country_sample column, I can then select the random sample, which extracts a random sample of the amounts given using a mapped <code>sample_n()</code> function. each time this is run, it extracts a new random sample, but always with the same given count.</p>
+<p>Using the results from the country_sample column, I can then select the random sample itself. This works by extracting a random sample of the desired amount according to the “sample count” value above (so 7 will be selected from Asia, 9 from LAC, 13 from SSA) using a <code>purrr::map()</code> of a sample using the <code>sample_n()</code> function. each time this is run, it extracts a new random sample, but always with the same given count per group.</p>
 <div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:300px; overflow-x: scroll; width:100%; ">
 <table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -157,6 +158,23 @@ yes
 Asia
 </td>
 <td style="text-align:right;">
+24
+</td>
+<td style="text-align:left;">
+India, Nepal, Pakistan
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+268900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Asia
+</td>
+<td style="text-align:right;">
 38
 </td>
 <td style="text-align:left;">
@@ -174,16 +192,16 @@ no
 Asia
 </td>
 <td style="text-align:right;">
-46
+36
 </td>
 <td style="text-align:left;">
-Bangladesh, India, Sri Lanka, Nepal, Pakistan
+India
 </td>
 <td style="text-align:left;">
-yes
+no
 </td>
 <td style="text-align:right;">
-612600
+799800
 </td>
 </tr>
 <tr>
@@ -194,13 +212,13 @@ Asia
 24
 </td>
 <td style="text-align:left;">
-Indonesia
+South East Asia
 </td>
 <td style="text-align:left;">
-no
+NA
 </td>
 <td style="text-align:right;">
-463000
+872000
 </td>
 </tr>
 <tr>
@@ -208,13 +226,64 @@ no
 Asia
 </td>
 <td style="text-align:right;">
-36
+48
 </td>
 <td style="text-align:left;">
-Bangladesh
+Pakistan
 </td>
 <td style="text-align:left;">
 no
+</td>
+<td style="text-align:right;">
+250000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Asia
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+200000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LAC
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:left;">
+Bolivia, Brazil, Colombia, Ecuador, Peru
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+505900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LAC
+</td>
+<td style="text-align:right;">
+48
+</td>
+<td style="text-align:left;">
+South and Central America
+</td>
+<td style="text-align:left;">
+NA
 </td>
 <td style="text-align:right;">
 500000
@@ -222,7 +291,7 @@ no
 </tr>
 <tr>
 <td style="text-align:left;">
-Asia
+LAC
 </td>
 <td style="text-align:right;">
 24
@@ -234,24 +303,7 @@ NA
 NA
 </td>
 <td style="text-align:right;">
-239000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Asia
-</td>
-<td style="text-align:right;">
-24
-</td>
-<td style="text-align:left;">
-Bangladesh, India
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-200000
+299800
 </td>
 </tr>
 <tr>
@@ -279,13 +331,13 @@ LAC
 24
 </td>
 <td style="text-align:left;">
-Mexico, Guatemala, El Salvador, Honduras
+Colombia
 </td>
 <td style="text-align:left;">
 no
 </td>
 <td style="text-align:right;">
-473500
+245500
 </td>
 </tr>
 <tr>
@@ -293,16 +345,16 @@ no
 LAC
 </td>
 <td style="text-align:right;">
-24
+36
 </td>
 <td style="text-align:left;">
-NA
+Costa Rica, El Salvador
 </td>
 <td style="text-align:left;">
-NA
+no
 </td>
 <td style="text-align:right;">
-299800
+534100
 </td>
 </tr>
 <tr>
@@ -327,16 +379,16 @@ no
 LAC
 </td>
 <td style="text-align:right;">
-36
+24
 </td>
 <td style="text-align:left;">
-Argentina, Bolivia, Ecuador
+Dominican Republic, Hondurus, El Salvador
 </td>
 <td style="text-align:left;">
 no
 </td>
 <td style="text-align:right;">
-619900
+527000
 </td>
 </tr>
 <tr>
@@ -345,40 +397,6 @@ LAC
 </td>
 <td style="text-align:right;">
 24
-</td>
-<td style="text-align:left;">
-Colombia
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-245500
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-LAC
-</td>
-<td style="text-align:right;">
-24
-</td>
-<td style="text-align:left;">
-Mexico, Guatemala
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-397100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-LAC
-</td>
-<td style="text-align:right;">
-36
 </td>
 <td style="text-align:left;">
 Mexico
@@ -387,24 +405,7 @@ Mexico
 yes
 </td>
 <td style="text-align:right;">
-546100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-LAC
-</td>
-<td style="text-align:right;">
-12
-</td>
-<td style="text-align:left;">
-Bolivia
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-63700
+244400
 </td>
 </tr>
 <tr>
@@ -412,16 +413,135 @@ no
 MENA
 </td>
 <td style="text-align:right;">
-34
+36
 </td>
 <td style="text-align:left;">
-Tunisia
+Egypt
 </td>
 <td style="text-align:left;">
 no
 </td>
 <td style="text-align:right;">
-482700
+502000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:left;">
+DRC, Somalia
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+500000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:left;">
+Mali, Uganda, Nigeria
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+499500
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:left;">
+South Africa
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+716300
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:left;">
+South Africa
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+500000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+34
+</td>
+<td style="text-align:left;">
+Senegal
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+376900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:left;">
+Uganda
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+350500
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:left;">
+Niger,Togo, Mali
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+1096500
 </td>
 </tr>
 <tr>
@@ -449,115 +569,13 @@ SSA
 36
 </td>
 <td style="text-align:left;">
-Ghana
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-506400
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-36
-</td>
-<td style="text-align:left;">
-Uganda
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-370100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-36
-</td>
-<td style="text-align:left;">
-Somaliland, South Africa, Liberia, Sierra Leone, Cote d’Ivoire, Nigeria
+Sierra Leone
 </td>
 <td style="text-align:left;">
 yes
 </td>
 <td style="text-align:right;">
-700000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-36
-</td>
-<td style="text-align:left;">
-South Africa
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-500000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-36
-</td>
-<td style="text-align:left;">
-Cameroon, Ghana, Senegal
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-618700
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-30
-</td>
-<td style="text-align:left;">
-Cameroon, Ghana, Uganda
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-743200
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-42
-</td>
-<td style="text-align:left;">
-Senegal
-</td>
-<td style="text-align:left;">
-no
-</td>
-<td style="text-align:right;">
-500000
+327900
 </td>
 </tr>
 <tr>
@@ -582,50 +600,16 @@ no
 SSA
 </td>
 <td style="text-align:right;">
-36
+32
 </td>
 <td style="text-align:left;">
-East Africa
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-622400
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-24
-</td>
-<td style="text-align:left;">
-DRC, Somalia
-</td>
-<td style="text-align:left;">
-yes
-</td>
-<td style="text-align:right;">
-500000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SSA
-</td>
-<td style="text-align:right;">
-30
-</td>
-<td style="text-align:left;">
-Zimbabwe
+Kenya
 </td>
 <td style="text-align:left;">
 no
 </td>
 <td style="text-align:right;">
-355700
+597100
 </td>
 </tr>
 <tr>
@@ -633,16 +617,33 @@ no
 SSA
 </td>
 <td style="text-align:right;">
-36
+34
 </td>
 <td style="text-align:left;">
-Sierra Leone
+Burkina Faso, DRC
 </td>
 <td style="text-align:left;">
 yes
 </td>
 <td style="text-align:right;">
-327900
+491600
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SSA
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:left;">
+Mali, Niger
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+485700
 </td>
 </tr>
 </tbody>

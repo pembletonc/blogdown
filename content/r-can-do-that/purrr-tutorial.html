@@ -1,0 +1,347 @@
+---
+title: "Using purrr and working with nested dataframes"
+author: "Corey Pembleton"
+date: '2018-11-11'
+output: html_document
+draft: true
+slug: purrr-and-nesting-dataframes
+---
+
+
+
+<div id="purrr-tutorial-valuable-lessons-in-map_ing" class="section level2">
+<h2>purrr tutorial: valuable lessons in map_*ing</h2>
+<p>I’m still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting data, applying analysis, and recombining the data. In this post, I just walk through my progress in the purrr tutorials, and a few other use cases. I will be doing this with a Canadian census dataset I created in a previous post rather than the “Game of Thrones” dataset <a href="https://twitter.com/JennyBryan">Jenny Bryan</a> uses.</p>
+<div id="first-things-first---understanding-lists-lists-of-lists-and-lists-of-dataframes" class="section level3">
+<h3>First thing’s first - understanding lists, lists of lists, and lists of dataframes</h3>
+<p>purrr, and its <code>map_*()</code> functions are fundamental to the tidyverse. I had been using them for some time, but really didn’t understand the process which was occuring in the background. Starting with Hadley’s R For Data Science section on <a href="https://r4ds.had.co.nz/vectors.html#introduction-13">vectors</a>, and <a href="https://blog.rstudio.com/2016/02/02/tidyr-0-4-0/">this note</a> detailing the <code>nest()</code> <code>tidyr</code> function, I could gain some understanding of three concepts, that of lists, lists of lists, and lists of dataframes.</p>
+<p>From r4ds, I learned that lists, also known as recursive vectors, are a type of vector (e.g. logical, integer, character) which unlike atomic vectors can contain a mix of atomic vectors. The structure of which is handily viewed using <code>str()</code></p>
+<pre class="r"><code>y &lt;- list(&quot;Canada&quot;, 32500, TRUE, 1L)
+str(y)</code></pre>
+<pre><code>## List of 4
+##  $ : chr &quot;Canada&quot;
+##  $ : num 32500
+##  $ : logi TRUE
+##  $ : int 1</code></pre>
+<p>And can contain other lists:</p>
+<pre class="r"><code>z &lt;- list(list(&quot;Canada&quot;, 32500), list(TRUE, 1L) )
+str(z)</code></pre>
+<pre><code>## List of 2
+##  $ :List of 2
+##   ..$ : chr &quot;Canada&quot;
+##   ..$ : num 32500
+##  $ :List of 2
+##   ..$ : logi TRUE
+##   ..$ : int 1</code></pre>
+<p>The hierarchical structure of the list of lists is important when considering the composition of a list containing multiple dataframes in a nested manner, and subsequently how the <code>purrr::map()</code> family of functions work. Interestingly, dataframes and tibbles are also lists, or augmented lists, with tibbles having the classes tbl_df, tbl, and data.frame.</p>
+<pre class="r"><code>#dataframe of a .csv derived dataset:
+
+census_small &lt;- slice(Census_2011, 3)
+typeof(census_small)</code></pre>
+<pre><code>## [1] &quot;list&quot;</code></pre>
+<pre class="r"><code>attributes(census_small)</code></pre>
+<pre><code>## $problems
+## # A tibble: 2 x 5
+##     row col                expected              actual file              
+##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;                 &lt;chr&gt;  &lt;chr&gt;             
+## 1  1209 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
+## 2  1253 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
+## 
+## $row.names
+## [1] 1
+## 
+## $class
+## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;
+## 
+## $spec
+## cols(
+##   CTUID = col_character(),
+##   GEOGRAPHY = col_character(),
+##   CMANAME = col_character(),
+##   PRNAME = col_character(),
+##   POP_PERC_CHANGE = col_double(),
+##   POP_DENSITY_KM2 = col_double(),
+##   PERC_POP_OVER_15 = col_double(),
+##   MEDIAN_AGE = col_double(),
+##   YEAR = col_integer(),
+##   Population = col_double(),
+##   Participation = col_double(),
+##   UNEMPLOYMENT = col_double(),
+##   COMMUTE_TRANSIT = col_integer(),
+##   COMMUTE_WALK = col_integer(),
+##   COMMUTE_CYCLE = col_integer(),
+##   COMMUTE_TIME = col_double(),
+##   NO_EDU = col_double(),
+##   HIGHSCHOOL = col_double(),
+##   UNIVERSITY = col_double(),
+##   COMMUTE_CAR = col_double(),
+##   COLLEGE = col_double(),
+##   MARRIED_COMMON = col_double(),
+##   NOT_MARRIED = col_double(),
+##   CHILDREN = col_double(),
+##   CHILDREN_AVG = col_double(),
+##   SINGLE_DETACHED = col_integer(),
+##   APARTMENT_5_GREATER = col_integer(),
+##   MOBILE_HOME = col_integer(),
+##   SEMI_DET = col_integer(),
+##   ROW_HOUSE = col_integer(),
+##   APARTMENT1 = col_integer(),
+##   APARTMENT_5_LESS = col_double(),
+##   PPL_IN_HOUSEHOLD = col_double(),
+##   ENGLISH = col_double(),
+##   FRENCH = col_double(),
+##   ABORIGINAL = col_integer(),
+##   OTHER_LANG = col_double(),
+##   INTERNAL_MIGRANTS = col_integer(),
+##   EXTERNAL_MIGRANTS = col_integer(),
+##   NORTH_AMERICAN_ABORIGINAL = col_integer(),
+##   CDN_CITIZEN = col_double(),
+##   NOT_CITIZEN = col_integer(),
+##   NON_IMMIGRANTS = col_double(),
+##   IMMIGRANTS = col_double(),
+##   NOT_A_VISI = col_double(),
+##   VISIBLE_MINORITY = col_double(),
+##   CHINESE = col_integer(),
+##   BLACK = col_integer(),
+##   SOUTH_ASIA = col_integer(),
+##   LATIN_AMER = col_integer(),
+##   FILIPINO = col_integer(),
+##   ARAB = col_integer(),
+##   SOUTHEAST_ASIAN = col_integer(),
+##   WEST_ASIAN = col_integer(),
+##   KOREAN = col_integer(),
+##   JAPANESE = col_integer(),
+##   BUDDHIST = col_integer(),
+##   CHRISTIAN = col_double(),
+##   HINDU = col_integer(),
+##   JEWISH = col_integer(),
+##   MUSLIM = col_integer(),
+##   SIKH = col_integer(),
+##   ABORIGINAL_REL = col_integer(),
+##   NO_REL = col_double()
+## )
+## 
+## $names
+##  [1] &quot;CTUID&quot;                     &quot;GEOGRAPHY&quot;                
+##  [3] &quot;CMANAME&quot;                   &quot;PRNAME&quot;                   
+##  [5] &quot;POP_PERC_CHANGE&quot;           &quot;POP_DENSITY_KM2&quot;          
+##  [7] &quot;PERC_POP_OVER_15&quot;          &quot;MEDIAN_AGE&quot;               
+##  [9] &quot;YEAR&quot;                      &quot;Population&quot;               
+## [11] &quot;Participation&quot;             &quot;UNEMPLOYMENT&quot;             
+## [13] &quot;COMMUTE_TRANSIT&quot;           &quot;COMMUTE_WALK&quot;             
+## [15] &quot;COMMUTE_CYCLE&quot;             &quot;COMMUTE_TIME&quot;             
+## [17] &quot;NO_EDU&quot;                    &quot;HIGHSCHOOL&quot;               
+## [19] &quot;UNIVERSITY&quot;                &quot;COMMUTE_CAR&quot;              
+## [21] &quot;COLLEGE&quot;                   &quot;MARRIED_COMMON&quot;           
+## [23] &quot;NOT_MARRIED&quot;               &quot;CHILDREN&quot;                 
+## [25] &quot;CHILDREN_AVG&quot;              &quot;SINGLE_DETACHED&quot;          
+## [27] &quot;APARTMENT_5_GREATER&quot;       &quot;MOBILE_HOME&quot;              
+## [29] &quot;SEMI_DET&quot;                  &quot;ROW_HOUSE&quot;                
+## [31] &quot;APARTMENT1&quot;                &quot;APARTMENT_5_LESS&quot;         
+## [33] &quot;PPL_IN_HOUSEHOLD&quot;          &quot;ENGLISH&quot;                  
+## [35] &quot;FRENCH&quot;                    &quot;ABORIGINAL&quot;               
+## [37] &quot;OTHER_LANG&quot;                &quot;INTERNAL_MIGRANTS&quot;        
+## [39] &quot;EXTERNAL_MIGRANTS&quot;         &quot;NORTH_AMERICAN_ABORIGINAL&quot;
+## [41] &quot;CDN_CITIZEN&quot;               &quot;NOT_CITIZEN&quot;              
+## [43] &quot;NON_IMMIGRANTS&quot;            &quot;IMMIGRANTS&quot;               
+## [45] &quot;NOT_A_VISI&quot;                &quot;VISIBLE_MINORITY&quot;         
+## [47] &quot;CHINESE&quot;                   &quot;BLACK&quot;                    
+## [49] &quot;SOUTH_ASIA&quot;                &quot;LATIN_AMER&quot;               
+## [51] &quot;FILIPINO&quot;                  &quot;ARAB&quot;                     
+## [53] &quot;SOUTHEAST_ASIAN&quot;           &quot;WEST_ASIAN&quot;               
+## [55] &quot;KOREAN&quot;                    &quot;JAPANESE&quot;                 
+## [57] &quot;BUDDHIST&quot;                  &quot;CHRISTIAN&quot;                
+## [59] &quot;HINDU&quot;                     &quot;JEWISH&quot;                   
+## [61] &quot;MUSLIM&quot;                    &quot;SIKH&quot;                     
+## [63] &quot;ABORIGINAL_REL&quot;            &quot;NO_REL&quot;</code></pre>
+<pre class="r"><code>#tibble of a .csv-derived dataset
+
+census_small_tb &lt;- as.tibble(census_small)
+
+typeof(census_small_tb)</code></pre>
+<pre><code>## [1] &quot;list&quot;</code></pre>
+<pre class="r"><code>attributes(census_small_tb)</code></pre>
+<pre><code>## $problems
+## # A tibble: 2 x 5
+##     row col                expected              actual file              
+##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;                 &lt;chr&gt;  &lt;chr&gt;             
+## 1  1209 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
+## 2  1253 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
+## 
+## $row.names
+## [1] 1
+## 
+## $class
+## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;
+## 
+## $spec
+## cols(
+##   CTUID = col_character(),
+##   GEOGRAPHY = col_character(),
+##   CMANAME = col_character(),
+##   PRNAME = col_character(),
+##   POP_PERC_CHANGE = col_double(),
+##   POP_DENSITY_KM2 = col_double(),
+##   PERC_POP_OVER_15 = col_double(),
+##   MEDIAN_AGE = col_double(),
+##   YEAR = col_integer(),
+##   Population = col_double(),
+##   Participation = col_double(),
+##   UNEMPLOYMENT = col_double(),
+##   COMMUTE_TRANSIT = col_integer(),
+##   COMMUTE_WALK = col_integer(),
+##   COMMUTE_CYCLE = col_integer(),
+##   COMMUTE_TIME = col_double(),
+##   NO_EDU = col_double(),
+##   HIGHSCHOOL = col_double(),
+##   UNIVERSITY = col_double(),
+##   COMMUTE_CAR = col_double(),
+##   COLLEGE = col_double(),
+##   MARRIED_COMMON = col_double(),
+##   NOT_MARRIED = col_double(),
+##   CHILDREN = col_double(),
+##   CHILDREN_AVG = col_double(),
+##   SINGLE_DETACHED = col_integer(),
+##   APARTMENT_5_GREATER = col_integer(),
+##   MOBILE_HOME = col_integer(),
+##   SEMI_DET = col_integer(),
+##   ROW_HOUSE = col_integer(),
+##   APARTMENT1 = col_integer(),
+##   APARTMENT_5_LESS = col_double(),
+##   PPL_IN_HOUSEHOLD = col_double(),
+##   ENGLISH = col_double(),
+##   FRENCH = col_double(),
+##   ABORIGINAL = col_integer(),
+##   OTHER_LANG = col_double(),
+##   INTERNAL_MIGRANTS = col_integer(),
+##   EXTERNAL_MIGRANTS = col_integer(),
+##   NORTH_AMERICAN_ABORIGINAL = col_integer(),
+##   CDN_CITIZEN = col_double(),
+##   NOT_CITIZEN = col_integer(),
+##   NON_IMMIGRANTS = col_double(),
+##   IMMIGRANTS = col_double(),
+##   NOT_A_VISI = col_double(),
+##   VISIBLE_MINORITY = col_double(),
+##   CHINESE = col_integer(),
+##   BLACK = col_integer(),
+##   SOUTH_ASIA = col_integer(),
+##   LATIN_AMER = col_integer(),
+##   FILIPINO = col_integer(),
+##   ARAB = col_integer(),
+##   SOUTHEAST_ASIAN = col_integer(),
+##   WEST_ASIAN = col_integer(),
+##   KOREAN = col_integer(),
+##   JAPANESE = col_integer(),
+##   BUDDHIST = col_integer(),
+##   CHRISTIAN = col_double(),
+##   HINDU = col_integer(),
+##   JEWISH = col_integer(),
+##   MUSLIM = col_integer(),
+##   SIKH = col_integer(),
+##   ABORIGINAL_REL = col_integer(),
+##   NO_REL = col_double()
+## )
+## 
+## $names
+##  [1] &quot;CTUID&quot;                     &quot;GEOGRAPHY&quot;                
+##  [3] &quot;CMANAME&quot;                   &quot;PRNAME&quot;                   
+##  [5] &quot;POP_PERC_CHANGE&quot;           &quot;POP_DENSITY_KM2&quot;          
+##  [7] &quot;PERC_POP_OVER_15&quot;          &quot;MEDIAN_AGE&quot;               
+##  [9] &quot;YEAR&quot;                      &quot;Population&quot;               
+## [11] &quot;Participation&quot;             &quot;UNEMPLOYMENT&quot;             
+## [13] &quot;COMMUTE_TRANSIT&quot;           &quot;COMMUTE_WALK&quot;             
+## [15] &quot;COMMUTE_CYCLE&quot;             &quot;COMMUTE_TIME&quot;             
+## [17] &quot;NO_EDU&quot;                    &quot;HIGHSCHOOL&quot;               
+## [19] &quot;UNIVERSITY&quot;                &quot;COMMUTE_CAR&quot;              
+## [21] &quot;COLLEGE&quot;                   &quot;MARRIED_COMMON&quot;           
+## [23] &quot;NOT_MARRIED&quot;               &quot;CHILDREN&quot;                 
+## [25] &quot;CHILDREN_AVG&quot;              &quot;SINGLE_DETACHED&quot;          
+## [27] &quot;APARTMENT_5_GREATER&quot;       &quot;MOBILE_HOME&quot;              
+## [29] &quot;SEMI_DET&quot;                  &quot;ROW_HOUSE&quot;                
+## [31] &quot;APARTMENT1&quot;                &quot;APARTMENT_5_LESS&quot;         
+## [33] &quot;PPL_IN_HOUSEHOLD&quot;          &quot;ENGLISH&quot;                  
+## [35] &quot;FRENCH&quot;                    &quot;ABORIGINAL&quot;               
+## [37] &quot;OTHER_LANG&quot;                &quot;INTERNAL_MIGRANTS&quot;        
+## [39] &quot;EXTERNAL_MIGRANTS&quot;         &quot;NORTH_AMERICAN_ABORIGINAL&quot;
+## [41] &quot;CDN_CITIZEN&quot;               &quot;NOT_CITIZEN&quot;              
+## [43] &quot;NON_IMMIGRANTS&quot;            &quot;IMMIGRANTS&quot;               
+## [45] &quot;NOT_A_VISI&quot;                &quot;VISIBLE_MINORITY&quot;         
+## [47] &quot;CHINESE&quot;                   &quot;BLACK&quot;                    
+## [49] &quot;SOUTH_ASIA&quot;                &quot;LATIN_AMER&quot;               
+## [51] &quot;FILIPINO&quot;                  &quot;ARAB&quot;                     
+## [53] &quot;SOUTHEAST_ASIAN&quot;           &quot;WEST_ASIAN&quot;               
+## [55] &quot;KOREAN&quot;                    &quot;JAPANESE&quot;                 
+## [57] &quot;BUDDHIST&quot;                  &quot;CHRISTIAN&quot;                
+## [59] &quot;HINDU&quot;                     &quot;JEWISH&quot;                   
+## [61] &quot;MUSLIM&quot;                    &quot;SIKH&quot;                     
+## [63] &quot;ABORIGINAL_REL&quot;            &quot;NO_REL&quot;</code></pre>
+<p>With that understanding, I now see how a nested tibble or dataframe operates. Hadley Wickham describes a nested dataframe as</p>
+<blockquote>
+<p>“In a grouped data frame, you have <strong>one row per observation</strong>, and additional metadata define the groups. In a nested data frame, you have <strong>one row per group</strong>, and the individual observations are stored in a column that is a list of data frames.”</p>
+</blockquote>
+<p>Without nesting, the data has over 64 variables with 5,452 observations, a fairly large dataset. Fortunately, I don’t need to explore each province in the country, but rather a single province.</p>
+<p>Nested we can view a grouped version of the data in a neater, rolled-up format, select out the data needed, and look at that subset in detail.</p>
+<pre class="r"><code>nested_census &lt;- Census_2011 %&gt;% 
+  group_by(PRNAME) %&gt;%
+  nest()
+
+nested_census</code></pre>
+<pre><code>## # A tibble: 9 x 2
+##   PRNAME                                              data                 
+##   &lt;chr&gt;                                               &lt;list&gt;               
+## 1 Manitoba                                            &lt;tibble [173 x 63]&gt;  
+## 2 Ontario                                             &lt;tibble [2,273 x 63]&gt;
+## 3 Quebec / Québec                                     &lt;tibble [1,371 x 63]&gt;
+## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 x 63]&gt;  
+## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 x 63]&gt;   
+## 6 Alberta                                             &lt;tibble [573 x 63]&gt;  
+## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 x 63]&gt;  
+## 8 Saskatchewan                                        &lt;tibble [109 x 63]&gt;  
+## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 x 63]&gt;</code></pre>
+<p>Aside from being neat, we see something interesting - a new column titled “data”, which unsurprisingly is a list class. Looking at Newfoundland and Labrador’s dataframe can be done through the same operators as with lists: with [, [[, or $, which shows the ungrouped data, in this case of the province:</p>
+<pre class="r"><code>nested_census$data[[5]]</code></pre>
+<pre><code>## # A tibble: 47 x 63
+##    CTUID GEOGRAPHY CMANAME POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15
+##    &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;             &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;
+##  1 0010~ 0010017.~ St. Jo~            98              22.9             74.5
+##  2 0010~ 0010202.~ St. Jo~           232.             81.8             82.9
+##  3 0010~ 0010001.~ St. Jo~             3             204.              84.3
+##  4 0010~ 0010200.~ St. Jo~            11.1            40.3             81.5
+##  5 0010~ 0010200.~ St. Jo~            18.8           174               78.5
+##  6 0010~ 0010172.~ St. Jo~            -7.5          1268               86.8
+##  7 0010~ 0010300.~ St. Jo~             6.4           885.              81.7
+##  8 0010~ 0010301.~ St. Jo~            13.1           299.              82.2
+##  9 0010~ 0010003.~ St. Jo~            -1.7          2537               86.8
+## 10 0010~ 0010015.~ St. Jo~             0.3          2997.              87.5
+## # ... with 37 more rows, and 57 more variables: MEDIAN_AGE &lt;dbl&gt;,
+## #   YEAR &lt;int&gt;, Population &lt;dbl&gt;, Participation &lt;dbl&gt;, UNEMPLOYMENT &lt;dbl&gt;,
+## #   COMMUTE_TRANSIT &lt;int&gt;, COMMUTE_WALK &lt;int&gt;, COMMUTE_CYCLE &lt;int&gt;,
+## #   COMMUTE_TIME &lt;dbl&gt;, NO_EDU &lt;dbl&gt;, HIGHSCHOOL &lt;dbl&gt;, UNIVERSITY &lt;dbl&gt;,
+## #   COMMUTE_CAR &lt;dbl&gt;, COLLEGE &lt;dbl&gt;, MARRIED_COMMON &lt;dbl&gt;,
+## #   NOT_MARRIED &lt;dbl&gt;, CHILDREN &lt;dbl&gt;, CHILDREN_AVG &lt;dbl&gt;,
+## #   SINGLE_DETACHED &lt;int&gt;, APARTMENT_5_GREATER &lt;int&gt;, MOBILE_HOME &lt;int&gt;,
+## #   SEMI_DET &lt;int&gt;, ROW_HOUSE &lt;int&gt;, APARTMENT1 &lt;int&gt;,
+## #   APARTMENT_5_LESS &lt;dbl&gt;, PPL_IN_HOUSEHOLD &lt;dbl&gt;, ENGLISH &lt;dbl&gt;,
+## #   FRENCH &lt;dbl&gt;, ABORIGINAL &lt;int&gt;, OTHER_LANG &lt;dbl&gt;,
+## #   INTERNAL_MIGRANTS &lt;int&gt;, EXTERNAL_MIGRANTS &lt;int&gt;,
+## #   NORTH_AMERICAN_ABORIGINAL &lt;int&gt;, CDN_CITIZEN &lt;dbl&gt;, NOT_CITIZEN &lt;int&gt;,
+## #   NON_IMMIGRANTS &lt;dbl&gt;, IMMIGRANTS &lt;dbl&gt;, NOT_A_VISI &lt;dbl&gt;,
+## #   VISIBLE_MINORITY &lt;dbl&gt;, CHINESE &lt;int&gt;, BLACK &lt;int&gt;, SOUTH_ASIA &lt;int&gt;,
+## #   LATIN_AMER &lt;int&gt;, FILIPINO &lt;int&gt;, ARAB &lt;int&gt;, SOUTHEAST_ASIAN &lt;int&gt;,
+## #   WEST_ASIAN &lt;int&gt;, KOREAN &lt;int&gt;, JAPANESE &lt;int&gt;, BUDDHIST &lt;int&gt;,
+## #   CHRISTIAN &lt;dbl&gt;, HINDU &lt;int&gt;, JEWISH &lt;int&gt;, MUSLIM &lt;int&gt;, SIKH &lt;int&gt;,
+## #   ABORIGINAL_REL &lt;int&gt;, NO_REL &lt;dbl&gt;</code></pre>
+<p>Nesting and pulling out one of the “nested” dataframes in its ungrouped format is helpful for how data is structured, now I’d like to look at how this process can be used in analysis.</p>
+</div>
+</div>
+<div id="back-to-map" class="section level2">
+<h2>Back to map()</h2>
+<p>Now that I have my head wrapped around these structures, I can get back to the point: <code>purrr::map()</code>. On CRAN, the family of <code>map_*</code> is titled as “apply a function to each element of a vector” - pretty much says exactly what it does.</p>
+<p>The documentation gives some helpful examples I’d like to follow using the Census data.</p>
+<p>The first, is presented as:</p>
+<pre class="r"><code>1:10 %&gt;%
+  map(rnorm, n = 10) %&gt;%
+  map_dbl(mean)</code></pre>
+<pre><code>##  [1]  1.488471  2.045517  3.657541  3.597283  4.824971  6.089474  6.691298
+##  [8]  8.295104  9.435346 10.729569</code></pre>
+</div>

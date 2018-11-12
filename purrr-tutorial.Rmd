@@ -1,5 +1,5 @@
 ---
-title: "purrr_tutorial"
+title: "Using purrr and working with nested dataframes"
 author: "Corey Pembleton"
 date: '2018-11-11'
 output: html_document

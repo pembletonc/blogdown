@@ -3,7 +3,7 @@ title: " Making Sense of the Census, 2006 - 2011"
 description: "Part 2: Building a tidy dataset"
 author: "Corey Pembleton"
 date: "6/24/2018"
-slug: canadian-census-data-cleaning
+slug: canadian-census-data-cleaning-pt1
 output: html_document
 draft: true
 ---
@@ -11,7 +11,7 @@ draft: true
 <script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
-<p>Reading Time: 4 minutes</p>
+<p>Reading Time: 5 minutes</p>
 <div id="purpose" class="section level2">
 <h2>Purpose</h2>
 <p>Before I perform any data tidying, processing and manipulation, I always keep the purpose of the analysis in the front of my mind. For this project, the main purpose is to create a dataset which:</p>
@@ -228,9 +228,7 @@ Income levels, by gender, median and mean calculations
 ## $ SIKH                      &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 95, 18...
 ## $ ABORIGINAL_REL            &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
 ## $ NO_REL                    &lt;dbl&gt; 1235, 850, 870, 1150, 655, 530, 630,...</code></pre>
-<p>This provide a solid basis to begin any additional tidying necessary, and then the processing, analysis and visualisation.</p>
-</div>
-<div id="tidying" class="section level2">
-<h2>Tidying</h2>
-<p>The datasets created are missing a single component: they are not combined into a single dataset.</p>
+<p>This provide a solid basis to begin any additional tidying necessary, and then the processing, analysis and visualisation. It gives me a single source for all subsequent analysis I want to do, and gives an idea of what exists. In fact, it is so important the last thing I’ll do is export the new “master” file for use in future projects, so I don’t need to re-run this entire process everytime. This file can be found openly on my github blogdown content folder for anyone to use.</p>
+<pre class="r"><code>write_csv(Census_2011, &quot;Census_2011.csv&quot;)</code></pre>
+<p>Now that this is done, I will begin exploring how this dataset can be used. For now, I plan to use it in place of other generic datasets, like iris or mtcars when learning new packages.</p>
 </div>

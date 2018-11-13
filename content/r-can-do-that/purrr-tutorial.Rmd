@@ -85,22 +85,56 @@ Nesting and pulling out one of the "nested" dataframes in its ungrouped format i
 
 Now that I have my head wrapped around these structures, I can get back to the point: ```purrr::map()```. On CRAN, the family of ```map_*``` is titled as "apply a function to each element of a vector" - pretty much says exactly what it does.
 
-The documentation gives some helpful examples I'd like to follow using the Census data.
+The rdocumentation gives some simple examples which I'd like to breakdown further, which I follow here and refer to some other helpful stackoverflow and rdocumentation to expand on what is learned.
 
-The first, is presented as:
+## 1. map() use case: passing functions through a list of vectors
 
-```{r}
+In rdocumentation the first use of ```map()```, is presented as:
+
+```{r, eval=FALSE}
 1:10 %>%
   map(rnorm, n = 10) %>%
   map_dbl(mean)
 ```
 
+The first line and ```map()``` give us a randomly generated normal distribution of each vector in the 1:10 sequence, with the result looking like:
+
+```{r, echo=FALSE}
+1:10 %>%
+  map(rnorm, n = 10)
+```
+
+Based on the structure, we see that ```map()```, as described, passed a function (rnorm()) to each vector in 1:10. 
+
+In the third line, we see that another function, ```mean()``` is being passed through each of the 10 rnorm generated values in the list:
+
+```{r, echo=FALSE}
+1:10 %>%
+  map(rnorm, n = 10) %>%
+  map_dbl(mean)
+```
+
+Another use-case which I see often, is to pass a formula through various pieces of a dataframe:
+
+```{r, eval=FALSE}
+mtcars %>%
+  split(.$cyl) %>%
+  map(~ lm(mpg ~ wt, data = .x)) %>%
+  map(summary) %>%
+  map_dbl("r.squared")
+```
+
+The second line, ```split(.$cyl)```, uses the base r function ```split()``` to split the dataframe based upon the 3 cyl groups, 4, 6, and 8.  
 
 
+###side note: formulae usage in ```map()```  
+> In the third line, we see ```map()``` being used to pass formula across each of these three groups for a regression of the mpg and wt variables. I know that it is a formula because it leads with a tilde (~). For formulas in ```map()```, it can take three arguments: 1) single use arguments: ```.```; 2) two-argument function: ```.x``` and ```.y``` and three, 3) more arguments: ```..1```, ```..2```, etc.
 
+>Hence, ```map(~ lm(mpg ~ wt, data = .x))``` will pass the formula, with ```.x``` meaning that ```map``` will pass the formula across all unused data variables present in the data frame. It will have the same result using ``` map(~ lm(mpg ~ wt, data = .))```. 
 
+In the subsequent lines, ```summary()``` provides the summary of the above linear regression model, and the ```map_dbl()``` does what ```map()``` does best: it passes through a list(summary, list of lm summary data for each of the three groups) and extracts based on the name. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.
 
-
+### 
 
 
 

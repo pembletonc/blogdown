@@ -11,11 +11,11 @@ slug: purrr-and-nesting-dataframes
 
 <div id="purrr-tutorial-valuable-lessons-in-map_ing" class="section level2">
 <h2>purrr tutorial: valuable lessons in map_*ing</h2>
-<p>I’m still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting data, applying analysis, and recombining the data. In this post, I just walk through my progress in the purrr tutorials, and a few other use cases. I will be doing this with a Canadian census dataset I created in a previous post rather than the “Game of Thrones” dataset <a href="https://twitter.com/JennyBryan">Jenny Bryan</a> uses.</p>
+<p>I’m still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting, applying analysis, and recombining the data. In this post, I walk through my progress in various purrr tutorials, and a few use cases of the <code>purrr::map()</code> functions. I will be doing this with a Canadian census dataset I created in a <a href="https://coreypembleton.netlify.com/space-stats/canadian-census-data-cleaning-pt1/">previous post</a></p>
 <div id="first-things-first---understanding-lists-lists-of-lists-and-lists-of-dataframes" class="section level3">
 <h3>First thing’s first - understanding lists, lists of lists, and lists of dataframes</h3>
-<p>purrr, and its <code>map_*()</code> functions are fundamental to the tidyverse. I had been using them for some time, but really didn’t understand the process which was occuring in the background. Starting with Hadley’s R For Data Science section on <a href="https://r4ds.had.co.nz/vectors.html#introduction-13">vectors</a>, and <a href="https://blog.rstudio.com/2016/02/02/tidyr-0-4-0/">this note</a> detailing the <code>nest()</code> <code>tidyr</code> function, I could gain some understanding of three concepts, that of lists, lists of lists, and lists of dataframes.</p>
-<p>From r4ds, I learned that lists, also known as recursive vectors, are a type of vector (e.g. logical, integer, character) which unlike atomic vectors can contain a mix of atomic vectors. The structure of which is handily viewed using <code>str()</code></p>
+<p>purrr, and its <code>map_*()</code> functions are fundamental to executing functions in the tidyverse. I had been using <code>map()</code> and different purrr functions for some time but really didn’t understand the underlying processes which made it all work. Starting with Hadley’s R For Data Science (r4ds) section on <a href="https://r4ds.had.co.nz/vectors.html#introduction-13">vectors</a>, and <a href="https://blog.rstudio.com/2016/02/02/tidyr-0-4-0/">this note</a> detailing the <code>nest()</code> <code>tidyr</code> function, I could gain some understanding of three concepts, that of lists, lists of lists, and lists of dataframes.</p>
+<p>From r4ds, I learned that lists, also known as recursive vectors, are a type of vector which unlike atomic vectors (e.g. logical, integer, character) can contain a mix of different types of atomic vectors. The structure of lists can be viewed using <code>str()</code>:</p>
 <pre class="r"><code>y &lt;- list(&quot;Canada&quot;, 32500, TRUE, 1L)
 str(y)</code></pre>
 <pre><code>## List of 4
@@ -23,7 +23,7 @@ str(y)</code></pre>
 ##  $ : num 32500
 ##  $ : logi TRUE
 ##  $ : int 1</code></pre>
-<p>And can contain other lists:</p>
+<p>Lists can contain other lists:</p>
 <pre class="r"><code>z &lt;- list(list(&quot;Canada&quot;, 32500), list(TRUE, 1L) )
 str(z)</code></pre>
 <pre><code>## List of 2
@@ -33,378 +33,137 @@ str(z)</code></pre>
 ##  $ :List of 2
 ##   ..$ : logi TRUE
 ##   ..$ : int 1</code></pre>
-<p>The hierarchical structure of the list of lists is important when considering the composition of a list containing multiple dataframes in a nested manner, and subsequently how the <code>purrr::map()</code> family of functions work. Interestingly, dataframes and tibbles are also lists, or augmented lists, with tibbles having the classes tbl_df, tbl, and data.frame.</p>
+<p>The hierarchical structure of the nested list is important when considering the composition of a list containing multiple dataframes in a nested manner, and subsequently how the <code>purrr::map()</code> family of functions work. Interestingly, dataframes and tibbles are also lists, or augmented lists, with tibbles having the classes tbl_df, tbl, and data.frame, as can be seen with the <code>attributes()</code> function (not shown).</p>
 <pre class="r"><code>#dataframe of a .csv derived dataset:
 
-census_small &lt;- slice(Census_2011, 3)
-typeof(census_small)</code></pre>
+census_small_df &lt;- Census_2011[,3:10]
+typeof(census_small_df)</code></pre>
 <pre><code>## [1] &quot;list&quot;</code></pre>
-<pre class="r"><code>attributes(census_small)</code></pre>
-<pre><code>## $problems
-## # A tibble: 2 x 5
-##     row col                expected              actual file              
-##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;                 &lt;chr&gt;  &lt;chr&gt;             
-## 1  1209 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
-## 2  1253 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
-## 
-## $row.names
-## [1] 1
-## 
-## $class
-## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;
-## 
-## $spec
-## cols(
-##   CTUID = col_character(),
-##   GEOGRAPHY = col_character(),
-##   CMANAME = col_character(),
-##   PRNAME = col_character(),
-##   POP_PERC_CHANGE = col_double(),
-##   POP_DENSITY_KM2 = col_double(),
-##   PERC_POP_OVER_15 = col_double(),
-##   MEDIAN_AGE = col_double(),
-##   YEAR = col_integer(),
-##   Population = col_double(),
-##   Participation = col_double(),
-##   UNEMPLOYMENT = col_double(),
-##   COMMUTE_TRANSIT = col_integer(),
-##   COMMUTE_WALK = col_integer(),
-##   COMMUTE_CYCLE = col_integer(),
-##   COMMUTE_TIME = col_double(),
-##   NO_EDU = col_double(),
-##   HIGHSCHOOL = col_double(),
-##   UNIVERSITY = col_double(),
-##   COMMUTE_CAR = col_double(),
-##   COLLEGE = col_double(),
-##   MARRIED_COMMON = col_double(),
-##   NOT_MARRIED = col_double(),
-##   CHILDREN = col_double(),
-##   CHILDREN_AVG = col_double(),
-##   SINGLE_DETACHED = col_integer(),
-##   APARTMENT_5_GREATER = col_integer(),
-##   MOBILE_HOME = col_integer(),
-##   SEMI_DET = col_integer(),
-##   ROW_HOUSE = col_integer(),
-##   APARTMENT1 = col_integer(),
-##   APARTMENT_5_LESS = col_double(),
-##   PPL_IN_HOUSEHOLD = col_double(),
-##   ENGLISH = col_double(),
-##   FRENCH = col_double(),
-##   ABORIGINAL = col_integer(),
-##   OTHER_LANG = col_double(),
-##   INTERNAL_MIGRANTS = col_integer(),
-##   EXTERNAL_MIGRANTS = col_integer(),
-##   NORTH_AMERICAN_ABORIGINAL = col_integer(),
-##   CDN_CITIZEN = col_double(),
-##   NOT_CITIZEN = col_integer(),
-##   NON_IMMIGRANTS = col_double(),
-##   IMMIGRANTS = col_double(),
-##   NOT_A_VISI = col_double(),
-##   VISIBLE_MINORITY = col_double(),
-##   CHINESE = col_integer(),
-##   BLACK = col_integer(),
-##   SOUTH_ASIA = col_integer(),
-##   LATIN_AMER = col_integer(),
-##   FILIPINO = col_integer(),
-##   ARAB = col_integer(),
-##   SOUTHEAST_ASIAN = col_integer(),
-##   WEST_ASIAN = col_integer(),
-##   KOREAN = col_integer(),
-##   JAPANESE = col_integer(),
-##   BUDDHIST = col_integer(),
-##   CHRISTIAN = col_double(),
-##   HINDU = col_integer(),
-##   JEWISH = col_integer(),
-##   MUSLIM = col_integer(),
-##   SIKH = col_integer(),
-##   ABORIGINAL_REL = col_integer(),
-##   NO_REL = col_double()
-## )
-## 
-## $names
-##  [1] &quot;CTUID&quot;                     &quot;GEOGRAPHY&quot;                
-##  [3] &quot;CMANAME&quot;                   &quot;PRNAME&quot;                   
-##  [5] &quot;POP_PERC_CHANGE&quot;           &quot;POP_DENSITY_KM2&quot;          
-##  [7] &quot;PERC_POP_OVER_15&quot;          &quot;MEDIAN_AGE&quot;               
-##  [9] &quot;YEAR&quot;                      &quot;Population&quot;               
-## [11] &quot;Participation&quot;             &quot;UNEMPLOYMENT&quot;             
-## [13] &quot;COMMUTE_TRANSIT&quot;           &quot;COMMUTE_WALK&quot;             
-## [15] &quot;COMMUTE_CYCLE&quot;             &quot;COMMUTE_TIME&quot;             
-## [17] &quot;NO_EDU&quot;                    &quot;HIGHSCHOOL&quot;               
-## [19] &quot;UNIVERSITY&quot;                &quot;COMMUTE_CAR&quot;              
-## [21] &quot;COLLEGE&quot;                   &quot;MARRIED_COMMON&quot;           
-## [23] &quot;NOT_MARRIED&quot;               &quot;CHILDREN&quot;                 
-## [25] &quot;CHILDREN_AVG&quot;              &quot;SINGLE_DETACHED&quot;          
-## [27] &quot;APARTMENT_5_GREATER&quot;       &quot;MOBILE_HOME&quot;              
-## [29] &quot;SEMI_DET&quot;                  &quot;ROW_HOUSE&quot;                
-## [31] &quot;APARTMENT1&quot;                &quot;APARTMENT_5_LESS&quot;         
-## [33] &quot;PPL_IN_HOUSEHOLD&quot;          &quot;ENGLISH&quot;                  
-## [35] &quot;FRENCH&quot;                    &quot;ABORIGINAL&quot;               
-## [37] &quot;OTHER_LANG&quot;                &quot;INTERNAL_MIGRANTS&quot;        
-## [39] &quot;EXTERNAL_MIGRANTS&quot;         &quot;NORTH_AMERICAN_ABORIGINAL&quot;
-## [41] &quot;CDN_CITIZEN&quot;               &quot;NOT_CITIZEN&quot;              
-## [43] &quot;NON_IMMIGRANTS&quot;            &quot;IMMIGRANTS&quot;               
-## [45] &quot;NOT_A_VISI&quot;                &quot;VISIBLE_MINORITY&quot;         
-## [47] &quot;CHINESE&quot;                   &quot;BLACK&quot;                    
-## [49] &quot;SOUTH_ASIA&quot;                &quot;LATIN_AMER&quot;               
-## [51] &quot;FILIPINO&quot;                  &quot;ARAB&quot;                     
-## [53] &quot;SOUTHEAST_ASIAN&quot;           &quot;WEST_ASIAN&quot;               
-## [55] &quot;KOREAN&quot;                    &quot;JAPANESE&quot;                 
-## [57] &quot;BUDDHIST&quot;                  &quot;CHRISTIAN&quot;                
-## [59] &quot;HINDU&quot;                     &quot;JEWISH&quot;                   
-## [61] &quot;MUSLIM&quot;                    &quot;SIKH&quot;                     
-## [63] &quot;ABORIGINAL_REL&quot;            &quot;NO_REL&quot;</code></pre>
 <pre class="r"><code>#tibble of a .csv-derived dataset
 
-census_small_tb &lt;- as.tibble(census_small)
+census_small &lt;- as.tibble(census_small_df)
 
-typeof(census_small_tb)</code></pre>
+typeof(census_small)</code></pre>
 <pre><code>## [1] &quot;list&quot;</code></pre>
-<pre class="r"><code>attributes(census_small_tb)</code></pre>
-<pre><code>## $problems
-## # A tibble: 2 x 5
-##     row col                expected              actual file              
-##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;                 &lt;chr&gt;  &lt;chr&gt;             
-## 1  1209 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
-## 2  1253 APARTMENT_5_GREAT~ no trailing characte~ e3     &#39;./Census_2011.cs~
-## 
-## $row.names
-## [1] 1
-## 
-## $class
-## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;
-## 
-## $spec
-## cols(
-##   CTUID = col_character(),
-##   GEOGRAPHY = col_character(),
-##   CMANAME = col_character(),
-##   PRNAME = col_character(),
-##   POP_PERC_CHANGE = col_double(),
-##   POP_DENSITY_KM2 = col_double(),
-##   PERC_POP_OVER_15 = col_double(),
-##   MEDIAN_AGE = col_double(),
-##   YEAR = col_integer(),
-##   Population = col_double(),
-##   Participation = col_double(),
-##   UNEMPLOYMENT = col_double(),
-##   COMMUTE_TRANSIT = col_integer(),
-##   COMMUTE_WALK = col_integer(),
-##   COMMUTE_CYCLE = col_integer(),
-##   COMMUTE_TIME = col_double(),
-##   NO_EDU = col_double(),
-##   HIGHSCHOOL = col_double(),
-##   UNIVERSITY = col_double(),
-##   COMMUTE_CAR = col_double(),
-##   COLLEGE = col_double(),
-##   MARRIED_COMMON = col_double(),
-##   NOT_MARRIED = col_double(),
-##   CHILDREN = col_double(),
-##   CHILDREN_AVG = col_double(),
-##   SINGLE_DETACHED = col_integer(),
-##   APARTMENT_5_GREATER = col_integer(),
-##   MOBILE_HOME = col_integer(),
-##   SEMI_DET = col_integer(),
-##   ROW_HOUSE = col_integer(),
-##   APARTMENT1 = col_integer(),
-##   APARTMENT_5_LESS = col_double(),
-##   PPL_IN_HOUSEHOLD = col_double(),
-##   ENGLISH = col_double(),
-##   FRENCH = col_double(),
-##   ABORIGINAL = col_integer(),
-##   OTHER_LANG = col_double(),
-##   INTERNAL_MIGRANTS = col_integer(),
-##   EXTERNAL_MIGRANTS = col_integer(),
-##   NORTH_AMERICAN_ABORIGINAL = col_integer(),
-##   CDN_CITIZEN = col_double(),
-##   NOT_CITIZEN = col_integer(),
-##   NON_IMMIGRANTS = col_double(),
-##   IMMIGRANTS = col_double(),
-##   NOT_A_VISI = col_double(),
-##   VISIBLE_MINORITY = col_double(),
-##   CHINESE = col_integer(),
-##   BLACK = col_integer(),
-##   SOUTH_ASIA = col_integer(),
-##   LATIN_AMER = col_integer(),
-##   FILIPINO = col_integer(),
-##   ARAB = col_integer(),
-##   SOUTHEAST_ASIAN = col_integer(),
-##   WEST_ASIAN = col_integer(),
-##   KOREAN = col_integer(),
-##   JAPANESE = col_integer(),
-##   BUDDHIST = col_integer(),
-##   CHRISTIAN = col_double(),
-##   HINDU = col_integer(),
-##   JEWISH = col_integer(),
-##   MUSLIM = col_integer(),
-##   SIKH = col_integer(),
-##   ABORIGINAL_REL = col_integer(),
-##   NO_REL = col_double()
-## )
-## 
-## $names
-##  [1] &quot;CTUID&quot;                     &quot;GEOGRAPHY&quot;                
-##  [3] &quot;CMANAME&quot;                   &quot;PRNAME&quot;                   
-##  [5] &quot;POP_PERC_CHANGE&quot;           &quot;POP_DENSITY_KM2&quot;          
-##  [7] &quot;PERC_POP_OVER_15&quot;          &quot;MEDIAN_AGE&quot;               
-##  [9] &quot;YEAR&quot;                      &quot;Population&quot;               
-## [11] &quot;Participation&quot;             &quot;UNEMPLOYMENT&quot;             
-## [13] &quot;COMMUTE_TRANSIT&quot;           &quot;COMMUTE_WALK&quot;             
-## [15] &quot;COMMUTE_CYCLE&quot;             &quot;COMMUTE_TIME&quot;             
-## [17] &quot;NO_EDU&quot;                    &quot;HIGHSCHOOL&quot;               
-## [19] &quot;UNIVERSITY&quot;                &quot;COMMUTE_CAR&quot;              
-## [21] &quot;COLLEGE&quot;                   &quot;MARRIED_COMMON&quot;           
-## [23] &quot;NOT_MARRIED&quot;               &quot;CHILDREN&quot;                 
-## [25] &quot;CHILDREN_AVG&quot;              &quot;SINGLE_DETACHED&quot;          
-## [27] &quot;APARTMENT_5_GREATER&quot;       &quot;MOBILE_HOME&quot;              
-## [29] &quot;SEMI_DET&quot;                  &quot;ROW_HOUSE&quot;                
-## [31] &quot;APARTMENT1&quot;                &quot;APARTMENT_5_LESS&quot;         
-## [33] &quot;PPL_IN_HOUSEHOLD&quot;          &quot;ENGLISH&quot;                  
-## [35] &quot;FRENCH&quot;                    &quot;ABORIGINAL&quot;               
-## [37] &quot;OTHER_LANG&quot;                &quot;INTERNAL_MIGRANTS&quot;        
-## [39] &quot;EXTERNAL_MIGRANTS&quot;         &quot;NORTH_AMERICAN_ABORIGINAL&quot;
-## [41] &quot;CDN_CITIZEN&quot;               &quot;NOT_CITIZEN&quot;              
-## [43] &quot;NON_IMMIGRANTS&quot;            &quot;IMMIGRANTS&quot;               
-## [45] &quot;NOT_A_VISI&quot;                &quot;VISIBLE_MINORITY&quot;         
-## [47] &quot;CHINESE&quot;                   &quot;BLACK&quot;                    
-## [49] &quot;SOUTH_ASIA&quot;                &quot;LATIN_AMER&quot;               
-## [51] &quot;FILIPINO&quot;                  &quot;ARAB&quot;                     
-## [53] &quot;SOUTHEAST_ASIAN&quot;           &quot;WEST_ASIAN&quot;               
-## [55] &quot;KOREAN&quot;                    &quot;JAPANESE&quot;                 
-## [57] &quot;BUDDHIST&quot;                  &quot;CHRISTIAN&quot;                
-## [59] &quot;HINDU&quot;                     &quot;JEWISH&quot;                   
-## [61] &quot;MUSLIM&quot;                    &quot;SIKH&quot;                     
-## [63] &quot;ABORIGINAL_REL&quot;            &quot;NO_REL&quot;</code></pre>
-<p>With that understanding, I now see how a nested tibble or dataframe operates. Hadley Wickham describes a nested dataframe as</p>
+</div>
+<div id="nested-dataframes" class="section level3">
+<h3>Nested Dataframes</h3>
+<p>With that understanding, I can now understand how a nested tibble or dataframe operates. Hadley Wickham describes a nested dataframe as:</p>
 <blockquote>
 <p>“In a grouped data frame, you have <strong>one row per observation</strong>, and additional metadata define the groups. In a nested data frame, you have <strong>one row per group</strong>, and the individual observations are stored in a column that is a list of data frames.”</p>
 </blockquote>
-<p>Without nesting, the data has over 64 variables with 5,452 observations, a fairly large dataset. Fortunately, I don’t need to explore each province in the country, but rather a single province.</p>
-<p>Nested we can view a grouped version of the data in a neater, rolled-up format, select out the data needed, and look at that subset in detail.</p>
-<pre class="r"><code>nested_census &lt;- Census_2011 %&gt;% 
+<pre class="r"><code>nested_census &lt;- census_small %&gt;% 
   group_by(PRNAME) %&gt;%
   nest()
 
 nested_census</code></pre>
 <pre><code>## # A tibble: 9 x 2
-##   PRNAME                                              data                 
-##   &lt;chr&gt;                                               &lt;list&gt;               
-## 1 Manitoba                                            &lt;tibble [173 x 63]&gt;  
-## 2 Ontario                                             &lt;tibble [2,273 x 63]&gt;
-## 3 Quebec / Québec                                     &lt;tibble [1,371 x 63]&gt;
-## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 x 63]&gt;  
-## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 x 63]&gt;   
-## 6 Alberta                                             &lt;tibble [573 x 63]&gt;  
-## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 x 63]&gt;  
-## 8 Saskatchewan                                        &lt;tibble [109 x 63]&gt;  
-## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 x 63]&gt;</code></pre>
+##   PRNAME                                              data                
+##   &lt;chr&gt;                                               &lt;list&gt;              
+## 1 Manitoba                                            &lt;tibble [173 × 7]&gt;  
+## 2 Ontario                                             &lt;tibble [2,273 × 7]&gt;
+## 3 Quebec / Québec                                     &lt;tibble [1,371 × 7]&gt;
+## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 × 7]&gt;  
+## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 × 7]&gt;   
+## 6 Alberta                                             &lt;tibble [573 × 7]&gt;  
+## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 × 7]&gt;  
+## 8 Saskatchewan                                        &lt;tibble [109 × 7]&gt;  
+## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 × 7]&gt;</code></pre>
 <p>Aside from being neat, we see something interesting - a new column titled “data”, which unsurprisingly is a list class. Looking at Newfoundland and Labrador’s dataframe can be done through the same operators as with lists: with [, [[, or $, which shows the ungrouped data, in this case of the province:</p>
 <pre class="r"><code>nested_census$data[[5]]</code></pre>
-<pre><code>## # A tibble: 47 x 63
-##    CTUID GEOGRAPHY CMANAME POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15
-##    &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;             &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;
-##  1 0010~ 0010017.~ St. Jo~            98              22.9             74.5
-##  2 0010~ 0010202.~ St. Jo~           232.             81.8             82.9
-##  3 0010~ 0010001.~ St. Jo~             3             204.              84.3
-##  4 0010~ 0010200.~ St. Jo~            11.1            40.3             81.5
-##  5 0010~ 0010200.~ St. Jo~            18.8           174               78.5
-##  6 0010~ 0010172.~ St. Jo~            -7.5          1268               86.8
-##  7 0010~ 0010300.~ St. Jo~             6.4           885.              81.7
-##  8 0010~ 0010301.~ St. Jo~            13.1           299.              82.2
-##  9 0010~ 0010003.~ St. Jo~            -1.7          2537               86.8
-## 10 0010~ 0010015.~ St. Jo~             0.3          2997.              87.5
-## # ... with 37 more rows, and 57 more variables: MEDIAN_AGE &lt;dbl&gt;,
-## #   YEAR &lt;int&gt;, Population &lt;dbl&gt;, Participation &lt;dbl&gt;, UNEMPLOYMENT &lt;dbl&gt;,
-## #   COMMUTE_TRANSIT &lt;int&gt;, COMMUTE_WALK &lt;int&gt;, COMMUTE_CYCLE &lt;int&gt;,
-## #   COMMUTE_TIME &lt;dbl&gt;, NO_EDU &lt;dbl&gt;, HIGHSCHOOL &lt;dbl&gt;, UNIVERSITY &lt;dbl&gt;,
-## #   COMMUTE_CAR &lt;dbl&gt;, COLLEGE &lt;dbl&gt;, MARRIED_COMMON &lt;dbl&gt;,
-## #   NOT_MARRIED &lt;dbl&gt;, CHILDREN &lt;dbl&gt;, CHILDREN_AVG &lt;dbl&gt;,
-## #   SINGLE_DETACHED &lt;int&gt;, APARTMENT_5_GREATER &lt;int&gt;, MOBILE_HOME &lt;int&gt;,
-## #   SEMI_DET &lt;int&gt;, ROW_HOUSE &lt;int&gt;, APARTMENT1 &lt;int&gt;,
-## #   APARTMENT_5_LESS &lt;dbl&gt;, PPL_IN_HOUSEHOLD &lt;dbl&gt;, ENGLISH &lt;dbl&gt;,
-## #   FRENCH &lt;dbl&gt;, ABORIGINAL &lt;int&gt;, OTHER_LANG &lt;dbl&gt;,
-## #   INTERNAL_MIGRANTS &lt;int&gt;, EXTERNAL_MIGRANTS &lt;int&gt;,
-## #   NORTH_AMERICAN_ABORIGINAL &lt;int&gt;, CDN_CITIZEN &lt;dbl&gt;, NOT_CITIZEN &lt;int&gt;,
-## #   NON_IMMIGRANTS &lt;dbl&gt;, IMMIGRANTS &lt;dbl&gt;, NOT_A_VISI &lt;dbl&gt;,
-## #   VISIBLE_MINORITY &lt;dbl&gt;, CHINESE &lt;int&gt;, BLACK &lt;int&gt;, SOUTH_ASIA &lt;int&gt;,
-## #   LATIN_AMER &lt;int&gt;, FILIPINO &lt;int&gt;, ARAB &lt;int&gt;, SOUTHEAST_ASIAN &lt;int&gt;,
-## #   WEST_ASIAN &lt;int&gt;, KOREAN &lt;int&gt;, JAPANESE &lt;int&gt;, BUDDHIST &lt;int&gt;,
-## #   CHRISTIAN &lt;dbl&gt;, HINDU &lt;int&gt;, JEWISH &lt;int&gt;, MUSLIM &lt;int&gt;, SIKH &lt;int&gt;,
-## #   ABORIGINAL_REL &lt;int&gt;, NO_REL &lt;dbl&gt;</code></pre>
+<pre><code>## # A tibble: 47 x 7
+##    CMANAME    POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15 MEDIAN_AGE
+##    &lt;chr&gt;                &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;      &lt;dbl&gt;
+##  1 St. John&#39;s            98              22.9             74.5       34.7
+##  2 St. John&#39;s           232.             81.8             82.9       30.7
+##  3 St. John&#39;s             3             204.              84.3       40.3
+##  4 St. John&#39;s            11.1            40.3             81.5       39  
+##  5 St. John&#39;s            18.8           174               78.5       37  
+##  6 St. John&#39;s            -7.5          1268               86.8       42.3
+##  7 St. John&#39;s             6.4           885.              81.7       40.5
+##  8 St. John&#39;s            13.1           299.              82.2       39.2
+##  9 St. John&#39;s            -1.7          2537               86.8       42.5
+## 10 St. John&#39;s             0.3          2997.              87.5       42.3
+## # ... with 37 more rows, and 2 more variables: YEAR &lt;int&gt;,
+## #   Population &lt;dbl&gt;</code></pre>
 <p>Nesting and pulling out one of the “nested” dataframes in its ungrouped format is helpful for how data is structured, now I’d like to look at how this process can be used in analysis.</p>
 </div>
 </div>
 <div id="back-to-map" class="section level2">
 <h2>Back to map()</h2>
-<p>Now that I have my head wrapped around these structures, I can get back to the point: <code>purrr::map()</code>. On CRAN, the family of <code>map_*</code> is titled as “apply a function to each element of a vector” - pretty much says exactly what it does.</p>
+<p>Now that I have my head wrapped around these structures, I can get back to the point: <code>purrr::map()</code>. On CRAN, the function family of <code>map_()</code> is titled as “apply a function to each element of a vector” - pretty much says exactly what it does.</p>
 <p>The rdocumentation gives some simple examples which I’d like to breakdown further, which I follow here and refer to some other helpful stackoverflow and rdocumentation to expand on what is learned.</p>
-</div>
-<div id="map-use-case-passing-functions-through-a-list-of-vectors" class="section level2">
-<h2>1. map() use case: passing functions through a list of vectors</h2>
+<div id="map-use-case-1-passing-functions-through-a-list-of-vectors" class="section level3">
+<h3>map() use case 1: passing functions through a list of vectors</h3>
 <p>In rdocumentation the first use of <code>map()</code>, is presented as:</p>
 <pre class="r"><code>1:10 %&gt;%
   map(rnorm, n = 10) %&gt;%
   map_dbl(mean)</code></pre>
 <p>The first line and <code>map()</code> give us a randomly generated normal distribution of each vector in the 1:10 sequence, with the result looking like:</p>
 <pre><code>## [[1]]
-##  [1]  1.67653759  1.50550541  0.70578746  2.02762805  2.04828683
-##  [6]  1.18668229  1.21687063  2.10006326  2.45094306 -0.03359196
+##  [1]  1.62213446  2.22132845  1.05993921 -0.14627350 -0.21936851
+##  [6]  0.97422500  1.09138410  1.48747268  2.14512677  0.09027758
 ## 
 ## [[2]]
-##  [1] 2.3081999 0.7549014 2.8773878 1.4092072 2.7736839 2.2686183 1.0433384
-##  [8] 1.7896849 2.8040412 2.4261031
+##  [1] 0.9129618 1.9581204 2.8331084 0.8215932 2.0891932 2.6125335 1.3624032
+##  [8] 2.1398356 1.7785986 1.2654990
 ## 
 ## [[3]]
-##  [1] 2.271271 3.625582 3.397730 4.052353 3.937971 3.645454 2.710718
-##  [8] 4.411581 4.848242 3.674508
+##  [1] 1.868957 4.915127 2.083242 2.208221 4.798939 2.395265 6.400418
+##  [8] 3.658219 2.471180 3.701761
 ## 
 ## [[4]]
-##  [1] 3.908976 4.209312 5.085784 4.085716 4.119732 3.390517 3.740523
-##  [8] 2.175067 3.369975 1.887231
+##  [1] 4.402422 2.873759 4.985271 4.431688 4.852906 2.841711 3.322408
+##  [8] 3.106685 4.026843 2.436340
 ## 
 ## [[5]]
-##  [1] 3.964422 3.153222 6.067917 3.301525 4.940884 6.840239 5.340690
-##  [8] 4.699772 5.972092 3.968947
+##  [1] 4.111030 6.269268 5.966548 3.619990 5.409697 4.577024 4.301459
+##  [8] 3.725743 5.509356 6.439872
 ## 
 ## [[6]]
-##  [1] 6.383862 6.418562 6.864321 5.090036 6.136129 4.179955 4.944830
-##  [8] 6.708020 7.323892 6.845131
+##  [1] 6.976996 4.410797 4.036604 4.864104 6.669138 6.856760 5.470779
+##  [8] 7.238430 8.035663 6.423462
 ## 
 ## [[7]]
-##  [1] 6.633074 8.089190 5.961265 7.862093 6.504625 8.801914 5.658124
-##  [8] 6.658747 4.966581 5.777371
+##  [1] 6.863338 7.440772 8.173894 8.886853 7.924593 7.042299 6.678712
+##  [8] 8.078304 5.092022 9.442017
 ## 
 ## [[8]]
-##  [1] 8.922253 9.151783 7.701438 8.677783 8.841928 7.836860 6.922399
-##  [8] 8.064297 9.040339 7.791960
+##  [1] 7.316942 7.123538 9.739654 9.527539 8.925765 7.646270 6.885691
+##  [8] 7.967709 6.188625 6.925270
 ## 
 ## [[9]]
-##  [1]  9.470451  8.572978  9.541420  9.732753  9.570481 11.970560  9.218658
-##  [8]  9.416060 10.289013  6.571091
+##  [1]  9.721838  9.178207  9.706974  8.211163  9.699156  7.693497  8.315413
+##  [8] 10.659692  7.973805  8.590805
 ## 
 ## [[10]]
-##  [1] 10.559640  9.603158 10.897631 11.403535 10.456474 10.617665 11.044477
-##  [8] 10.767658 11.070858 10.874593</code></pre>
+##  [1] 10.584199  9.120937 10.897085  9.665076  8.692029  8.545474 10.818889
+##  [8] 10.377554  8.857058  9.272221</code></pre>
 <p>Based on the structure, we see that <code>map()</code>, as described, passed a function (rnorm()) to each vector in 1:10.</p>
 <p>In the third line, we see that another function, <code>mean()</code> is being passed through each of the 10 rnorm generated values in the list:</p>
-<pre><code>##  [1] 0.9435804 2.1377615 3.3653247 4.3664557 4.8670190 6.4613831 6.9093190
-##  [8] 8.1062948 8.7047609 9.4445559</code></pre>
-<p>Another use-case which I see often, is to pass a formula through various pieces of a dataframe:</p>
+<pre><code>##  [1]  1.150814  1.948603  2.474546  4.318802  5.341219  5.868901  7.779284
+##  [8]  7.656055  8.953964 10.356337</code></pre>
+</div>
+<div id="map-use-case-2-passing-a-formula-through-parts-of-a-dataframe" class="section level3">
+<h3>map() use case #2: passing a formula through parts of a dataframe</h3>
+<p>Another use-case which I see often, is to pass a formula through various pieces of a dataframe. In the rdocumentation script below, we see three uses of <code>map()</code>, a formula object being passed through a split dataframe, a function <code>summary()</code> being called, and a named vector from a nested list “r.squared” being called:</p>
 <pre class="r"><code>mtcars %&gt;%
   split(.$cyl) %&gt;%
   map(~ lm(mpg ~ wt, data = .x)) %&gt;%
   map(summary) %&gt;%
   map_dbl(&quot;r.squared&quot;)</code></pre>
 <p>The second line, <code>split(.$cyl)</code>, uses the base r function <code>split()</code> to split the dataframe based upon the 3 cyl groups, 4, 6, and 8.</p>
-<div id="side-note-formulae-usage-in-map" class="section level3">
-<h3>side note: formulae usage in <code>map()</code></h3>
-<blockquote>
-<p>In the third line, we see <code>map()</code> being used to pass formula across each of these three groups for a regression of the mpg and wt variables. I know that it is a formula because it leads with a tilde (~). For formulas in <code>map()</code>, it can take three arguments: 1) single use arguments: <code>.</code>; 2) two-argument function: <code>.x</code> and <code>.y</code> and three, 3) more arguments: <code>..1</code>, <code>..2</code>, etc.</p>
-</blockquote>
-<blockquote>
+<p>In the third line, <code>map()</code> is being used to pass formula across each of these three groups created, which is a regression between the mpg and wt variables. Formulas in <code>map()</code>, can take three arguments:</p>
+<ol style="list-style-type: decimal">
+<li>single use arguments: <code>.</code>;</li>
+<li>two-argument function: <code>.x</code> and <code>.y</code> and;</li>
+<li>more than two arguments: <code>..1</code>, <code>..2</code>, etc.</li>
+</ol>
 <p>Hence, <code>map(~ lm(mpg ~ wt, data = .x))</code> will pass the formula, with <code>.x</code> meaning that <code>map</code> will pass the formula across all unused data variables present in the data frame. It will have the same result using <code>map(~ lm(mpg ~ wt, data = .))</code>.</p>
+<blockquote>
+<p>Note on the tilde (~): tildes are used in formula objects in R, such as within the lm() formula used above. with map() there is an additional ~ before the lm() function when used in map() to <a href="https://stackoverflow.com/questions/44834446/what-is-meaning-of-first-tilde-in-purrrmap">identify the expression as being a formula object</a>.</p>
 </blockquote>
-<p>In the subsequent lines, <code>summary()</code> provides the summary of the above linear regression model, and the <code>map_dbl()</code> does what <code>map()</code> does best: it passes through a list(summary, list of lm summary data for each of the three groups) and extracts based on the name. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.</p>
+<p>In the subsequent lines, map passed the<code>summary()</code> function over each of the resultant groups’ linear model, and the <code>map_dbl()</code> does what <code>map()</code> does best: it passes through a nested list (summay output) and extracts based on the character vector name “r.squared”. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.</p>
 </div>
 <div id="section" class="section level3">
 <h3></h3>

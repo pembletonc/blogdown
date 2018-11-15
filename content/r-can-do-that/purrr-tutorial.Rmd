@@ -112,8 +112,8 @@ In the third line, we see that another function, ```mean()``` is being passed th
   map_dbl(mean)
 ```
 
-### map() use case #2: passing a formula through parts of a dataframe
-Another use-case which I see often, is to pass a formula through various pieces of a dataframe. In the rdocumentation script below, we see three uses of ```map()```, a formula object being passed through a split dataframe, a function ```summary()``` being called, and a named vector from a nested list "r.squared" being called:
+### map() use case #2: passing a formula through parts of a dataframe  
+Another use-case which I see often is to pass a formula through various pieces of a dataframe. In the rdocumentation script below, we see three uses of ```map()```, a formula object being passed through a split dataframe, a function ```summary()``` being called, and a named vector from a nested list "r.squared" being called:
 
 ```{r, eval=FALSE}
 mtcars %>%
@@ -125,7 +125,7 @@ mtcars %>%
 
 The second line, ```split(.$cyl)```, uses the base r function ```split()``` to split the dataframe based upon the 3 cyl groups, 4, 6, and 8.  
 
-In the third line,  ```map()``` is being used to pass formula across each of these three groups created, which is a regression between the mpg and wt variables. Formulas in ```map()```, can take three arguments:  
+In the third line,  ```map()``` is being used to pass formula across each of these three groups created, which is a regression between the mpg and wt variables. Formulas in ```map()``` can take three arguments:  
 
 1.  single use arguments: ```.```; 
 2.  two-argument function: ```.x``` and ```.y``` and; 
@@ -136,7 +136,7 @@ Hence, ```map(~ lm(mpg ~ wt, data = .x))``` will pass the formula, with ```.x```
 > Note on the tilde (~): tildes are used in formula objects in R, such as within the lm() formula used above. with map() there is an additional ~ before the lm() function when used in map() to [identify the expression as being a formula object](https://stackoverflow.com/questions/44834446/what-is-meaning-of-first-tilde-in-purrrmap). 
 
 
-In the subsequent lines, map passed the```summary()``` function over each of the resultant groups' linear model, and the ```map_dbl()``` does what ```map()``` does best: it passes through a nested list (summay output) and extracts based on the character vector name "r.squared". We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.
+In the subsequent lines, map passed the```summary()``` function over each of the resultant groups' linear model, and the ```map_dbl()``` does what ```map()``` does best: it passes through a nested list (summary output) and extracts based on the character vector name "r.squared". We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.
 
 ### 
 

@@ -146,14 +146,14 @@ nested_census</code></pre>
 </div>
 <div id="map-use-case-2-passing-a-formula-through-parts-of-a-dataframe" class="section level3">
 <h3>map() use case #2: passing a formula through parts of a dataframe</h3>
-<p>Another use-case which I see often, is to pass a formula through various pieces of a dataframe. In the rdocumentation script below, we see three uses of <code>map()</code>, a formula object being passed through a split dataframe, a function <code>summary()</code> being called, and a named vector from a nested list “r.squared” being called:</p>
+<p>Another use-case which I see often is to pass a formula through various pieces of a dataframe. In the rdocumentation script below, we see three uses of <code>map()</code>, a formula object being passed through a split dataframe, a function <code>summary()</code> being called, and a named vector from a nested list “r.squared” being called:</p>
 <pre class="r"><code>mtcars %&gt;%
   split(.$cyl) %&gt;%
   map(~ lm(mpg ~ wt, data = .x)) %&gt;%
   map(summary) %&gt;%
   map_dbl(&quot;r.squared&quot;)</code></pre>
 <p>The second line, <code>split(.$cyl)</code>, uses the base r function <code>split()</code> to split the dataframe based upon the 3 cyl groups, 4, 6, and 8.</p>
-<p>In the third line, <code>map()</code> is being used to pass formula across each of these three groups created, which is a regression between the mpg and wt variables. Formulas in <code>map()</code>, can take three arguments:</p>
+<p>In the third line, <code>map()</code> is being used to pass formula across each of these three groups created, which is a regression between the mpg and wt variables. Formulas in <code>map()</code> can take three arguments:</p>
 <ol style="list-style-type: decimal">
 <li>single use arguments: <code>.</code>;</li>
 <li>two-argument function: <code>.x</code> and <code>.y</code> and;</li>
@@ -163,7 +163,7 @@ nested_census</code></pre>
 <blockquote>
 <p>Note on the tilde (~): tildes are used in formula objects in R, such as within the lm() formula used above. with map() there is an additional ~ before the lm() function when used in map() to <a href="https://stackoverflow.com/questions/44834446/what-is-meaning-of-first-tilde-in-purrrmap">identify the expression as being a formula object</a>.</p>
 </blockquote>
-<p>In the subsequent lines, map passed the<code>summary()</code> function over each of the resultant groups’ linear model, and the <code>map_dbl()</code> does what <code>map()</code> does best: it passes through a nested list (summay output) and extracts based on the character vector name “r.squared”. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.</p>
+<p>In the subsequent lines, map passed the<code>summary()</code> function over each of the resultant groups’ linear model, and the <code>map_dbl()</code> does what <code>map()</code> does best: it passes through a nested list (summary output) and extracts based on the character vector name “r.squared”. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.</p>
 </div>
 <div id="section" class="section level3">
 <h3></h3>

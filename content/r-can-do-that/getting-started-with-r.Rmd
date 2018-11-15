@@ -1,0 +1,35 @@
+---
+title: 'Getting Started with R and RStudio'
+author: "Corey Pembleton"
+date: '2018-01-01'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Setting up R and RStudio properly is a good first start to programming in R, and learning to use GitHub as a version control tool from the beginning is a way to begin developing your portfolio track progress, and share your work publicly with others in the rstats community.  
+
+This post is intended for anyone who is interested in learning the language, but hasn't yet installed the requisite R shell or GUI. 
+
+
+### R and R Studio - What's the difference?
+R is the language, RStudio is the software. 
+
+
+
+### Downloading and Installing R
+
+
+### Downloading and Installing RStudio
+
+
+### Customizing RStudio
+
+
+
+### Getting Setup on GitHub
+
+
+

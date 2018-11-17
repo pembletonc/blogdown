@@ -3,7 +3,6 @@ title: "Using purrr and working with nested dataframes"
 author: "Corey Pembleton"
 date: '2018-11-11'
 output: html_document
-draft: true
 slug: purrr-and-nesting-dataframes
 ---
 
@@ -11,11 +10,16 @@ slug: purrr-and-nesting-dataframes
 
 <div id="purrr-tutorial-valuable-lessons-in-map_ing" class="section level2">
 <h2>purrr tutorial: valuable lessons in map_*ing</h2>
-<p>I’m still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting, applying analysis, and recombining the data. In this post, I walk through my progress in various purrr tutorials, and a few use cases of the <code>purrr::map()</code> functions. I will be doing this with a Canadian census dataset I created in a <a href="https://coreypembleton.netlify.com/space-stats/canadian-census-data-cleaning-pt1/">previous post</a></p>
+<p>I’m still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting, applying analysis, and recombining the data. In this post, I walk through my progress in various purrr tutorials, and a few use cases of the <code>purrr::map()</code> functions. I will be doing some of this with a Canadian census dataset I created in a <a href="https://coreypembleton.netlify.com/space-stats/canadian-census-data-cleaning-pt1/">previous post</a>. Here we go down the purrr rabbit hole…</p>
+<div class="figure">
+<img src="/img/alicerabbitholefeaturesmall.jpg" />
+
+</div>
 <div id="first-things-first---understanding-lists-lists-of-lists-and-lists-of-dataframes" class="section level3">
 <h3>First thing’s first - understanding lists, lists of lists, and lists of dataframes</h3>
-<p>purrr, and its <code>map_*()</code> functions are fundamental to executing functions in the tidyverse. I had been using <code>map()</code> and different purrr functions for some time but really didn’t understand the underlying processes which made it all work. Starting with Hadley’s R For Data Science (r4ds) section on <a href="https://r4ds.had.co.nz/vectors.html#introduction-13">vectors</a>, and <a href="https://blog.rstudio.com/2016/02/02/tidyr-0-4-0/">this note</a> detailing the <code>nest()</code> <code>tidyr</code> function, I could gain some understanding of three concepts, that of lists, lists of lists, and lists of dataframes.</p>
-<p>From r4ds, I learned that lists, also known as recursive vectors, are a type of vector which unlike atomic vectors (e.g. logical, integer, character) can contain a mix of different types of atomic vectors. The structure of lists can be viewed using <code>str()</code>:</p>
+<p>purrr, and its <code>map_*()</code> functions are fundamental to executing functions in the tidyverse. I have used <code>map()</code> and different purrr functions in the past, but really didn’t understand the underlying mechanisms behind the functions.</p>
+<p>To understand <code>map()</code>, I realized I need to understand lists, and <code>tidyr::nest()</code>. Starting with Hadley’s R For Data Science (r4ds) section on <a href="https://r4ds.had.co.nz/vectors.html#introduction-13">vectors</a>, and <a href="https://blog.rstudio.com/2016/02/02/tidyr-0-4-0/">this note</a> detailing the <code>nest()</code> <code>tidyr</code> function, I could gain some understanding around lists, lists of lists, and lists of dataframes.</p>
+<p>From r4ds, I learned that lists (also known as recursive vectors) are a type of vector which unlike atomic vectors (e.g. logical, integer, character, etc.) can contain a mix of different types of atomic vectors. The structure of lists can be viewed using <code>str()</code>:</p>
 <pre class="r"><code>y &lt;- list(&quot;Canada&quot;, 32500, TRUE, 1L)
 str(y)</code></pre>
 <pre><code>## List of 4
@@ -23,7 +27,7 @@ str(y)</code></pre>
 ##  $ : num 32500
 ##  $ : logi TRUE
 ##  $ : int 1</code></pre>
-<p>Lists can contain other lists:</p>
+<p>Lists can contain other lists, which is structured hierarchically:</p>
 <pre class="r"><code>z &lt;- list(list(&quot;Canada&quot;, 32500), list(TRUE, 1L) )
 str(z)</code></pre>
 <pre><code>## List of 2
@@ -48,58 +52,57 @@ typeof(census_small)</code></pre>
 </div>
 <div id="nested-dataframes" class="section level3">
 <h3>Nested Dataframes</h3>
-<p>With that understanding, I can now understand how a nested tibble or dataframe operates. Hadley Wickham describes a nested dataframe as:</p>
+<p>Hadley Wickham describes a nested dataframe as:</p>
 <blockquote>
 <p>“In a grouped data frame, you have <strong>one row per observation</strong>, and additional metadata define the groups. In a nested data frame, you have <strong>one row per group</strong>, and the individual observations are stored in a column that is a list of data frames.”</p>
 </blockquote>
-<pre class="r"><code>nested_census &lt;- census_small %&gt;% 
+<p>And to see what the looks like I can take the census dataset, group it by province, and see how the nested dataframe looks:</p>
+<pre class="r"><code>(nested_census &lt;- census_small %&gt;% 
   group_by(PRNAME) %&gt;%
-  nest()
-
-nested_census</code></pre>
+  nest())</code></pre>
 <pre><code>## # A tibble: 9 x 2
 ##   PRNAME                                              data                
 ##   &lt;chr&gt;                                               &lt;list&gt;              
-## 1 Manitoba                                            &lt;tibble [173 × 7]&gt;  
-## 2 Ontario                                             &lt;tibble [2,273 × 7]&gt;
-## 3 Quebec / Québec                                     &lt;tibble [1,371 × 7]&gt;
-## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 × 7]&gt;  
-## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 × 7]&gt;   
-## 6 Alberta                                             &lt;tibble [573 × 7]&gt;  
-## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 × 7]&gt;  
-## 8 Saskatchewan                                        &lt;tibble [109 × 7]&gt;  
-## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 × 7]&gt;</code></pre>
-<p>Aside from being neat, we see something interesting - a new column titled “data”, which unsurprisingly is a list class. Looking at Newfoundland and Labrador’s dataframe can be done through the same operators as with lists: with [, [[, or $, which shows the ungrouped data, in this case of the province:</p>
+## 1 Manitoba                                            &lt;tibble [173 x 7]&gt;  
+## 2 Ontario                                             &lt;tibble [2,273 x 7]&gt;
+## 3 Quebec / Québec                                     &lt;tibble [1,371 x 7]&gt;
+## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 x 7]&gt;  
+## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 x 7]&gt;   
+## 6 Alberta                                             &lt;tibble [573 x 7]&gt;  
+## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 x 7]&gt;  
+## 8 Saskatchewan                                        &lt;tibble [109 x 7]&gt;  
+## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 x 7]&gt;</code></pre>
+<p>Aside from being neat, something interesting is added - a new column “data”, which is a list class class. Looking at Newfoundland and Labrador’s dataframe can be done through the same operators as with lists: with [, [[, or $, which shows the ungrouped data, in this case of the province:</p>
 <pre class="r"><code>nested_census$data[[5]]</code></pre>
 <pre><code>## # A tibble: 47 x 7
-##    CMANAME    POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15 MEDIAN_AGE
-##    &lt;chr&gt;                &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;      &lt;dbl&gt;
-##  1 St. John&#39;s            98              22.9             74.5       34.7
-##  2 St. John&#39;s           232.             81.8             82.9       30.7
-##  3 St. John&#39;s             3             204.              84.3       40.3
-##  4 St. John&#39;s            11.1            40.3             81.5       39  
-##  5 St. John&#39;s            18.8           174               78.5       37  
-##  6 St. John&#39;s            -7.5          1268               86.8       42.3
-##  7 St. John&#39;s             6.4           885.              81.7       40.5
-##  8 St. John&#39;s            13.1           299.              82.2       39.2
-##  9 St. John&#39;s            -1.7          2537               86.8       42.5
-## 10 St. John&#39;s             0.3          2997.              87.5       42.3
+##    CMANAME POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15 MEDIAN_AGE
+##    &lt;chr&gt;             &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;      &lt;dbl&gt;
+##  1 St. Jo~            98              22.9             74.5       34.7
+##  2 St. Jo~           232.             81.8             82.9       30.7
+##  3 St. Jo~             3             204.              84.3       40.3
+##  4 St. Jo~            11.1            40.3             81.5       39  
+##  5 St. Jo~            18.8           174               78.5       37  
+##  6 St. Jo~            -7.5          1268               86.8       42.3
+##  7 St. Jo~             6.4           885.              81.7       40.5
+##  8 St. Jo~            13.1           299.              82.2       39.2
+##  9 St. Jo~            -1.7          2537               86.8       42.5
+## 10 St. Jo~             0.3          2997.              87.5       42.3
 ## # ... with 37 more rows, and 2 more variables: YEAR &lt;int&gt;,
 ## #   Population &lt;dbl&gt;</code></pre>
-<p>Nesting and pulling out one of the “nested” dataframes in its ungrouped format is helpful for how data is structured, now I’d like to look at how this process can be used in analysis.</p>
+<p>Nesting and pulling out one of the “nested” dataframes in its ungrouped format is helpful for seeing how data is structured. Now I’d like to look at how this process can be used in analysis, particularly when combined with the <code>purr::map()</code> family of functions.</p>
 </div>
 </div>
 <div id="back-to-map" class="section level2">
 <h2>Back to map()</h2>
-<p>Now that I have my head wrapped around these structures, I can get back to the point: <code>purrr::map()</code>. On CRAN, the function family of <code>map_()</code> is titled as “apply a function to each element of a vector” - pretty much says exactly what it does.</p>
-<p>The rdocumentation gives some simple examples which I’d like to breakdown further, which I follow here and refer to some other helpful stackoverflow and rdocumentation to expand on what is learned.</p>
+<p>Now that I have my head wrapped around these structures, I can get back to the point: <code>purrr::map()</code>. On CRAN, the function family of <code>map_()</code> is titled as “apply a function to each element of a vector” - which for me is the simplest way to understand what the function does.</p>
+<p>The rdocumentation gives some examples which I’d like to breakdown further, and refer to some other helpful stackoverflow and rdocumentation ntoes to expand on what I see happening.</p>
 <div id="map-use-case-1-passing-functions-through-a-list-of-vectors" class="section level3">
 <h3>map() use case 1: passing functions through a list of vectors</h3>
 <p>In rdocumentation the first use of <code>map()</code>, is presented as:</p>
 <pre class="r"><code>1:10 %&gt;%
   map(rnorm, n = 10) %&gt;%
   map_dbl(mean)</code></pre>
-<p>The first line and <code>map()</code> give us a randomly generated normal distribution of each vector in the 1:10 sequence, with the result looking like:</p>
+<p>The first line and <code>map()</code> give a randomly generated normal distribution of each vector in the 1:10 sequence, with the result looking like:</p>
 <pre><code>## [[1]]
 ##  [1]  1.62213446  2.22132845  1.05993921 -0.14627350 -0.21936851
 ##  [6]  0.97422500  1.09138410  1.48747268  2.14512677  0.09027758
@@ -139,21 +142,21 @@ nested_census</code></pre>
 ## [[10]]
 ##  [1] 10.584199  9.120937 10.897085  9.665076  8.692029  8.545474 10.818889
 ##  [8] 10.377554  8.857058  9.272221</code></pre>
-<p>Based on the structure, we see that <code>map()</code>, as described, passed a function (rnorm()) to each vector in 1:10.</p>
-<p>In the third line, we see that another function, <code>mean()</code> is being passed through each of the 10 rnorm generated values in the list:</p>
+<p>Based on the structure <code>map()</code> passes a function (<code>rnorm()</code>) to each vector in 1:10.</p>
+<p>In the third line another function, <code>mean()</code> is passed through each of the 10 rnorm generated values in the list:</p>
 <pre><code>##  [1]  1.150814  1.948603  2.474546  4.318802  5.341219  5.868901  7.779284
 ##  [8]  7.656055  8.953964 10.356337</code></pre>
 </div>
 <div id="map-use-case-2-passing-a-formula-through-parts-of-a-dataframe" class="section level3">
 <h3>map() use case #2: passing a formula through parts of a dataframe</h3>
-<p>Another use-case which I see often is to pass a formula through various pieces of a dataframe. In the rdocumentation script below, we see three uses of <code>map()</code>, a formula object being passed through a split dataframe, a function <code>summary()</code> being called, and a named vector from a nested list “r.squared” being called:</p>
+<p>Another use-case which I see often is to pass a formula through various pieces of a dataframe. In the rdocumentation script sample below, we see three uses of <code>map()</code>, a formula object being passed through a split dataframe, a function <code>summary()</code> being called, and a named vector from a nested list “r.squared” being called:</p>
 <pre class="r"><code>mtcars %&gt;%
   split(.$cyl) %&gt;%
   map(~ lm(mpg ~ wt, data = .x)) %&gt;%
   map(summary) %&gt;%
   map_dbl(&quot;r.squared&quot;)</code></pre>
 <p>The second line, <code>split(.$cyl)</code>, uses the base r function <code>split()</code> to split the dataframe based upon the 3 cyl groups, 4, 6, and 8.</p>
-<p>In the third line, <code>map()</code> is being used to pass formula across each of these three groups created, which is a regression between the mpg and wt variables. Formulas in <code>map()</code> can take three arguments:</p>
+<p>In the third line, <code>map()</code> is being used to pass a formula object across each of the three groups created, which is a regression between the mpg and wt variables. Formulas in <code>map()</code> can take three arguments:</p>
 <ol style="list-style-type: decimal">
 <li>single use arguments: <code>.</code>;</li>
 <li>two-argument function: <code>.x</code> and <code>.y</code> and;</li>
@@ -163,9 +166,41 @@ nested_census</code></pre>
 <blockquote>
 <p>Note on the tilde (~): tildes are used in formula objects in R, such as within the lm() formula used above. with map() there is an additional ~ before the lm() function when used in map() to <a href="https://stackoverflow.com/questions/44834446/what-is-meaning-of-first-tilde-in-purrrmap">identify the expression as being a formula object</a>.</p>
 </blockquote>
-<p>In the subsequent lines, map passed the<code>summary()</code> function over each of the resultant groups’ linear model, and the <code>map_dbl()</code> does what <code>map()</code> does best: it passes through a nested list (summary output) and extracts based on the character vector name “r.squared”. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.</p>
+<p>In the subsequent lines, map passed the<code>summary()</code> function over each of the resultant groups’ linear model, and the <code>map_dbl()</code> does what <code>map()</code> does best: it passes through a nested list (summary output) and extracts based on the character vector(list) named “r.squared”. We could replace this with other summary variables in the list, such as adj.r.squared, sigma, fstatistic, and more.</p>
 </div>
-<div id="section" class="section level3">
-<h3></h3>
+<div id="use-case-for-nest-and-map-together" class="section level3">
+<h3>Use-case for nest() and map() together</h3>
+<p>In the above examples, there is a combination of base R functions and “tidyverse” tools. Using <code>nest()</code> over <code>split()</code> offers a few benefits such as smoother organization of the workflow, especially when combining other operations. The below example introduces <code>broom::glance()</code>, which is a function well paired with <code>nest()</code> and <code>map()</code>, and plan to explore in detail in a future post.</p>
+<p>With a nesting and mapping approach, the workflow would instead look something like this:</p>
+<pre class="r"><code>(model_summary &lt;- mtcars %&gt;% 
+  group_by(cyl) %&gt;% 
+  nest() %&gt;% 
+  mutate(
+    model = map(data, ~lm(mpg ~ wt, data = .)),
+    model_summaries = map(model, broom::glance),
+    model_coef = map(model, broom::tidy))
+)</code></pre>
+<pre><code>## # A tibble: 3 x 5
+##     cyl data               model    model_summaries   model_coef      
+##   &lt;dbl&gt; &lt;list&gt;             &lt;list&gt;   &lt;list&gt;            &lt;list&gt;          
+## 1     6 &lt;tibble [7 x 10]&gt;  &lt;S3: lm&gt; &lt;tibble [1 x 11]&gt; &lt;tibble [2 x 5]&gt;
+## 2     4 &lt;tibble [11 x 10]&gt; &lt;S3: lm&gt; &lt;tibble [1 x 11]&gt; &lt;tibble [2 x 5]&gt;
+## 3     8 &lt;tibble [14 x 10]&gt; &lt;S3: lm&gt; &lt;tibble [1 x 11]&gt; &lt;tibble [2 x 5]&gt;</code></pre>
+<p>Which gives us a nested dataframe with the tidied broom results and glances. Like in the nest example above, these results can then be unnested, to reveal the statistical summaries from each model:</p>
+<pre class="r"><code>model_summary %&gt;% 
+  unnest(model_summaries, .drop = TRUE)</code></pre>
+<pre><code>## # A tibble: 3 x 12
+##     cyl r.squared adj.r.squared sigma statistic p.value    df logLik   AIC
+##   &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1     6     0.465         0.357  1.17      4.34  0.0918     2  -9.83  25.7
+## 2     4     0.509         0.454  3.33      9.32  0.0137     2 -27.7   61.5
+## 3     8     0.423         0.375  2.02      8.80  0.0118     2 -28.7   63.3
+## # ... with 3 more variables: BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;</code></pre>
+<p>By nesting instead of splitting, the subsequent mutate and map functions could more smoothly fit into a workflow, especially when the desire is to create a quick graphic to check results:</p>
+<p><img src="/r-can-do-that/purrr-tutorial_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+<div id="wrap-up" class="section level3">
+<h3>Wrap-up</h3>
+<p>Learning a single additional tool in R for a beginner often means needing to learn or brush up on many more concepts to fully grasp the functionality behind the scenes. Wanting to explore a single topic opened the doors to multiple concepts and functions, and I’m glad I entered that rabbit hole.</p>
 </div>
 </div>

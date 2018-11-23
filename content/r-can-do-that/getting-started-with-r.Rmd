@@ -1,7 +1,7 @@
 ---
-title: 'Getting Started with R and RStudio'
+title: 'Getting Started with R'
 author: "Corey Pembleton"
-date: '2018-01-01'
+date: '2017-01-01'
 output: html_document
 ---
 
@@ -15,21 +15,48 @@ This post is intended for anyone who is interested in learning the language, but
 
 
 ### R and R Studio - What's the difference?
-R is the language, RStudio is the software. 
+R (the application) is a free software programming language, and a software environemnt for statistical computing and graphics which uses personal computer resources (e.g. RAM) to process the R programming language.
 
-
+RStudio is a free and open-source integrated development environment (IDE), a software application that provides tools for programming in R and other languages. RStudio is the industry standard and is highly recommended for use.
 
 ### Downloading and Installing R
 
+R can be downloaded from cran by selecting the cran mirror closest to you, you can find the latest version [here](https://cran.r-project.org/src/base/R-3/) - make sure you download the latest version (Feather Spray). I recommend using the default installation settings, which can be changed later if desired.  
+
+Good practice is to check where the application has been installed and open it up to ensure it works, it should look something like this:
+
+![](/img/R_gui.png)
 
 ### Downloading and Installing RStudio
+With the R application installed, you can now install the latest version of RStudio [here](https://www.rstudio.com/products/RStudio/#Desktop) and be sure select "Open Source Edition".
 
 
-### Customizing RStudio
+### Customizing RStudio  
+
+Customization in RStudio has some components which I refer to as being "preferential" or "highly recommended". The latter are based upon my own experience and general best practices in programming in R to get into the habit of early-on. For a detailed list of all of the rstudio settings, check out the RStudio page on [customizing RStudio](https://support.rstudio.com/hc/en-us/articles/200549016-Customizing-RStudio).
+
+#### Appearances (preferential)
+
+In RStudio Windows, select View -> Panes -> Pane Layout...
+
+Which will bring up the following screen: ![](/img/Pane_Layout.png)
+
+
+From here, in the Appearance tab, you can select the font and background colour of your preference. As you program more, you'll see which fonts are best suited for you, remember to select based on clarity and style: you'll be looking at the text for a long time! It is generally recommended to use a large font (e.g. size 16), this will put less strain on your eyes!
+
+### Pane Layout (preferential)
+
+Explore a little with the pane layout, you can keep the default (console and terminal at the bottom), or move them to the upper right. I have the latter setting in place, I find it opens up more space for the script and viewer.
+
+
+### Workspace settings (HIGHLY recommended)
+
+DO NOT SAVE .RDATA when you quit, and DO NOT LOAD .RDATA when you fire R up. This is a default setting in RStudio which means that whenever you do something in one sesssion, it automatically saves your work to a temporary data file, and loads it when you begin. To prevent this from happening, ensure you have the following setup: ![](/img/R-data-setting.png)
 
 
 
-### Getting Setup on GitHub
+
+With that, you should be ready to go to begin downloading libraries, coding, and building your own projects! 
 
 
 

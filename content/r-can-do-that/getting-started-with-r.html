@@ -1,7 +1,7 @@
 ---
-title: 'Getting Started with R and RStudio'
+title: 'Getting Started with R'
 author: "Corey Pembleton"
-date: '2018-01-01'
+date: '2017-01-01'
 output: html_document
 ---
 
@@ -11,17 +11,38 @@ output: html_document
 <p>This post is intended for anyone who is interested in learning the language, but hasn’t yet installed the requisite R shell or GUI.</p>
 <div id="r-and-r-studio---whats-the-difference" class="section level3">
 <h3>R and R Studio - What’s the difference?</h3>
-<p>R is the language, RStudio is the software.</p>
+<p>R (the application) is a free software programming language, and a software environemnt for statistical computing and graphics which uses personal computer resources (e.g. RAM) to process the R programming language.</p>
+<p>RStudio is a free and open-source integrated development environment (IDE), a software application that provides tools for programming in R and other languages. RStudio is the industry standard and is highly recommended for use.</p>
 </div>
 <div id="downloading-and-installing-r" class="section level3">
 <h3>Downloading and Installing R</h3>
+<p>R can be downloaded from cran by selecting the cran mirror closest to you, you can find the latest version <a href="https://cran.r-project.org/src/base/R-3/">here</a> - make sure you download the latest version (Feather Spray). I recommend using the default installation settings, which can be changed later if desired.</p>
+<p>Good practice is to check where the application has been installed and open it up to ensure it works, it should look something like this:</p>
+<div class="figure">
+<img src="/img/R_gui.png" />
+
+</div>
 </div>
 <div id="downloading-and-installing-rstudio" class="section level3">
 <h3>Downloading and Installing RStudio</h3>
+<p>With the R application installed, you can now install the latest version of RStudio <a href="https://www.rstudio.com/products/RStudio/#Desktop">here</a> and be sure select “Open Source Edition”.</p>
 </div>
 <div id="customizing-rstudio" class="section level3">
 <h3>Customizing RStudio</h3>
+<p>Customization in RStudio has some components which I refer to as being “preferential” or “highly recommended”. The latter are based upon my own experience and general best practices in programming in R to get into the habit of early-on. For a detailed list of all of the rstudio settings, check out the RStudio page on <a href="https://support.rstudio.com/hc/en-us/articles/200549016-Customizing-RStudio">customizing RStudio</a>.</p>
+<div id="appearances-preferential" class="section level4">
+<h4>Appearances (preferential)</h4>
+<p>In RStudio Windows, select View -&gt; Panes -&gt; Pane Layout…</p>
+<p>Which will bring up the following screen: <img src="/img/Pane_Layout.png" /></p>
+<p>From here, in the Appearance tab, you can select the font and background colour of your preference. As you program more, you’ll see which fonts are best suited for you, remember to select based on clarity and style: you’ll be looking at the text for a long time! It is generally recommended to use a large font (e.g. size 16), this will put less strain on your eyes!</p>
 </div>
-<div id="getting-setup-on-github" class="section level3">
-<h3>Getting Setup on GitHub</h3>
+</div>
+<div id="pane-layout-preferential" class="section level3">
+<h3>Pane Layout (preferential)</h3>
+<p>Explore a little with the pane layout, you can keep the default (console and terminal at the bottom), or move them to the upper right. I have the latter setting in place, I find it opens up more space for the script and viewer.</p>
+</div>
+<div id="workspace-settings-highly-recommended" class="section level3">
+<h3>Workspace settings (HIGHLY recommended)</h3>
+<p>DO NOT SAVE .RDATA when you quit, and DO NOT LOAD .RDATA when you fire R up. This is a default setting in RStudio which means that whenever you do something in one sesssion, it automatically saves your work to a temporary data file, and loads it when you begin. To prevent this from happening, ensure you have the following setup: <img src="/img/R-data-setting.png" /></p>
+<p>With that, you should be ready to go to begin downloading libraries, coding, and building your own projects!</p>
 </div>

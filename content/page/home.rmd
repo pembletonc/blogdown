@@ -7,12 +7,7 @@ description: "homepage"
 <img src = "img/corey1.jpg" style="width:40%; border:2px solid; margin-right: 20px" align="left"/>
 
 
-This blog is several things, but mostly it is a living journal for the various ways in which I seek to explore how using tools and methods in statistics and data science can be integrated into international development evaluation, urban planning and environmental sustainability.  
-
-The intended audience for this blog is myself, to track my own progress in using command-line programming to solve development challenges, other evaluators interested in enhancing their own capacity, and other rstats users curious about exploring new tools, libraries, and approaches to solving challenges with data management and analysis.  
-
-
-In its simpleset form, this entails the exploration of how the quantitative and qualitative data sources used to form judgement in evaluative practices can be better informed through analysis, representation, and automation in the R programming language.  
+In its simpleset form, the posts here are an exploration of how the quantitative and qualitative data sources used to form judgement in how international development evaluative practices can be better informed through analysis, representation, and automation in the R programming language.  
 
 -----
 

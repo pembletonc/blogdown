@@ -1,0 +1,43 @@
+---
+title: 'Cleaning Evaluation Data: Grouping - Summarise - Export'
+author: "Corey Pembleton"
+date: '2018-11-22'
+output: html_document
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The Essential R Toolkit in Data Cleaning: Grouping, Summarising and Exporting
+
+I'm yet to participate in an evaluation that doesn't have the standard data science workflow of importing-tidying-understanding-presenting. The tidying and understanding components of this are tools every evaluator should have readily at their finger tips. Being able to reuse the same tools and methods across projects is a smarter way of working, especially when last-minute tables, graphs, presentation material and additional analyses are needed. 
+
+```{r, message=FALSE, warning=FALSE}
+###The libraries used for this post
+library(tidyverse)
+library(openxlsx)
+library(kableExtra)
+```
+
+
+
+
+```{r, message=FALSE}
+```
+
+At a glance, the table is 
+
+```{r, echo=FALSE}
+
+```
+
+
+
+
+
+#### Reference
+Max Roser (2018) - "Child Mortality". Published online at OurWorldInData.org. Retrieved from: 'https://ourworldindata.org/child-mortality' [Online Resource]
+
+

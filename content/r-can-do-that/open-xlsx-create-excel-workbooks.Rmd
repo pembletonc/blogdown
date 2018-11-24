@@ -1,5 +1,5 @@
 ---
-title: "Creating Custom Microsoft Excel Workbooks"
+title: "R can... create excel workbooks"
 author: "Corey Pembleton"
 date: "August 25, 2018"
 output: html_document
@@ -18,7 +18,7 @@ minutes <- words/200
 ```
 Reading Time: `r round(minutes)` minutes  
 
-## Let them have excel!
+## Creating Custom Microsoft Excel Workbooks
 
 I'm not exactly fundamentally against Microsoft Excel, but I'm not a member of the fan club either, so to speak. But when it comes to giving the people what they want, be it cake or be it proprietary spreadsheet softwares, I have to oblige. And ultimately what really matters at the end of the day is that the user, and client has the desired end result, not what *I* prefer as a datascientist. Thus, an important component of datascience is a) giving clients their desired output, and b) ensuring it is an output best suited to their needs - and sometimes that means giving an output in the form of an excel workbook. 
 

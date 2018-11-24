@@ -1,5 +1,5 @@
 ---
-title: "Using purrr and working with nested dataframes"
+title: "R can... purrr"
 author: "Corey Pembleton"
 date: '2018-11-11'
 output: html_document
@@ -8,8 +8,8 @@ slug: purrr-and-nesting-dataframes
 
 
 
-<div id="purrr-tutorial-valuable-lessons-in-map_ing" class="section level2">
-<h2>purrr tutorial: valuable lessons in map_*ing</h2>
+<div id="purrr-tutorial-using-purrr-and-working-with-nested-dataframes" class="section level2">
+<h2>purrr tutorial: Using purrr and working with nested dataframes</h2>
 <p>I’m still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting, applying analysis, and recombining the data. In this post, I walk through my progress in various purrr tutorials, and a few use cases of the <code>purrr::map()</code> functions. I will be doing some of this with a Canadian census dataset I created in a <a href="https://coreypembleton.netlify.com/space-stats/canadian-census-data-cleaning-pt1/">previous post</a>. Here we go down the purrr rabbit hole…</p>
 <div class="figure">
 <img src="/img/alicerabbitholefeaturesmall.jpg" />
@@ -63,30 +63,30 @@ typeof(census_small)</code></pre>
 <pre><code>## # A tibble: 9 x 2
 ##   PRNAME                                              data                
 ##   &lt;chr&gt;                                               &lt;list&gt;              
-## 1 Manitoba                                            &lt;tibble [173 x 7]&gt;  
-## 2 Ontario                                             &lt;tibble [2,273 x 7]&gt;
-## 3 Quebec / Québec                                     &lt;tibble [1,371 x 7]&gt;
-## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 x 7]&gt;  
-## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 x 7]&gt;   
-## 6 Alberta                                             &lt;tibble [573 x 7]&gt;  
-## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 x 7]&gt;  
-## 8 Saskatchewan                                        &lt;tibble [109 x 7]&gt;  
-## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 x 7]&gt;</code></pre>
+## 1 Manitoba                                            &lt;tibble [173 × 7]&gt;  
+## 2 Ontario                                             &lt;tibble [2,273 × 7]&gt;
+## 3 Quebec / Québec                                     &lt;tibble [1,371 × 7]&gt;
+## 4 British Columbia / Colombie-Britannique             &lt;tibble [711 × 7]&gt;  
+## 5 Newfoundland and Labrador / Terre-Neuve-et-Labrador &lt;tibble [47 × 7]&gt;   
+## 6 Alberta                                             &lt;tibble [573 × 7]&gt;  
+## 7 New Brunswick / Nouveau-Brunswick                   &lt;tibble [102 × 7]&gt;  
+## 8 Saskatchewan                                        &lt;tibble [109 × 7]&gt;  
+## 9 Nova Scotia / Nouvelle-Écosse                       &lt;tibble [93 × 7]&gt;</code></pre>
 <p>Aside from being neat, something interesting is added - a new column “data”, which is a list class class. Looking at Newfoundland and Labrador’s dataframe can be done through the same operators as with lists: with [, [[, or $, which shows the ungrouped data, in this case of the province:</p>
 <pre class="r"><code>nested_census$data[[5]]</code></pre>
 <pre><code>## # A tibble: 47 x 7
-##    CMANAME POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15 MEDIAN_AGE
-##    &lt;chr&gt;             &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;      &lt;dbl&gt;
-##  1 St. Jo~            98              22.9             74.5       34.7
-##  2 St. Jo~           232.             81.8             82.9       30.7
-##  3 St. Jo~             3             204.              84.3       40.3
-##  4 St. Jo~            11.1            40.3             81.5       39  
-##  5 St. Jo~            18.8           174               78.5       37  
-##  6 St. Jo~            -7.5          1268               86.8       42.3
-##  7 St. Jo~             6.4           885.              81.7       40.5
-##  8 St. Jo~            13.1           299.              82.2       39.2
-##  9 St. Jo~            -1.7          2537               86.8       42.5
-## 10 St. Jo~             0.3          2997.              87.5       42.3
+##    CMANAME    POP_PERC_CHANGE POP_DENSITY_KM2 PERC_POP_OVER_15 MEDIAN_AGE
+##    &lt;chr&gt;                &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;      &lt;dbl&gt;
+##  1 St. John&#39;s            98              22.9             74.5       34.7
+##  2 St. John&#39;s           232.             81.8             82.9       30.7
+##  3 St. John&#39;s             3             204.              84.3       40.3
+##  4 St. John&#39;s            11.1            40.3             81.5       39  
+##  5 St. John&#39;s            18.8           174               78.5       37  
+##  6 St. John&#39;s            -7.5          1268               86.8       42.3
+##  7 St. John&#39;s             6.4           885.              81.7       40.5
+##  8 St. John&#39;s            13.1           299.              82.2       39.2
+##  9 St. John&#39;s            -1.7          2537               86.8       42.5
+## 10 St. John&#39;s             0.3          2997.              87.5       42.3
 ## # ... with 37 more rows, and 2 more variables: YEAR &lt;int&gt;,
 ## #   Population &lt;dbl&gt;</code></pre>
 <p>Nesting and pulling out one of the “nested” dataframes in its ungrouped format is helpful for seeing how data is structured. Now I’d like to look at how this process can be used in analysis, particularly when combined with the <code>purr::map()</code> family of functions.</p>
@@ -181,11 +181,11 @@ typeof(census_small)</code></pre>
     model_coef = map(model, broom::tidy))
 )</code></pre>
 <pre><code>## # A tibble: 3 x 5
-##     cyl data               model    model_summaries   model_coef      
-##   &lt;dbl&gt; &lt;list&gt;             &lt;list&gt;   &lt;list&gt;            &lt;list&gt;          
-## 1     6 &lt;tibble [7 x 10]&gt;  &lt;S3: lm&gt; &lt;tibble [1 x 11]&gt; &lt;tibble [2 x 5]&gt;
-## 2     4 &lt;tibble [11 x 10]&gt; &lt;S3: lm&gt; &lt;tibble [1 x 11]&gt; &lt;tibble [2 x 5]&gt;
-## 3     8 &lt;tibble [14 x 10]&gt; &lt;S3: lm&gt; &lt;tibble [1 x 11]&gt; &lt;tibble [2 x 5]&gt;</code></pre>
+##     cyl data               model    model_summaries       model_coef      
+##   &lt;dbl&gt; &lt;list&gt;             &lt;list&gt;   &lt;list&gt;                &lt;list&gt;          
+## 1     6 &lt;tibble [7 × 10]&gt;  &lt;S3: lm&gt; &lt;data.frame [1 × 11]&gt; &lt;data.frame [2 …
+## 2     4 &lt;tibble [11 × 10]&gt; &lt;S3: lm&gt; &lt;data.frame [1 × 11]&gt; &lt;data.frame [2 …
+## 3     8 &lt;tibble [14 × 10]&gt; &lt;S3: lm&gt; &lt;data.frame [1 × 11]&gt; &lt;data.frame [2 …</code></pre>
 <p>Which gives us a nested dataframe with the tidied broom results and glances. Like in the nest example above, these results can then be unnested, to reveal the statistical summaries from each model:</p>
 <pre class="r"><code>model_summary %&gt;% 
   unnest(model_summaries, .drop = TRUE)</code></pre>

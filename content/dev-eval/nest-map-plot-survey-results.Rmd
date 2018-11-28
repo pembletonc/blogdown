@@ -1,0 +1,89 @@
+---
+title: "Nesting, mapping, and plotting survey results"
+author: "Corey Pembleton"
+date: "November 28, 2018"
+output: html_document
+draft: true
+slug: "nesting-mapping-plotting-survey-results"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(grid)
+survey <- read_csv("./fake_survey.csv")
+
+```
+
+
+
+
+
+```{r}
+colours = c("#ffffff", "#648015", "#97c020","#b5e4e9", "#c0c5ca",	"#7c8692"  )
+
+plot3 <- survey %>%
+  mutate(Question == str_trim(Question, "both")) %>%
+  filter(percentage > 0) %>%
+  group_by(Question) %>% 
+  nest() %>% 
+  mutate(plot = map2(data, Question,
+                     ~ggplot(data = .x, aes(x = stakeholder_group, y = percentage,
+                                            fill = Response,
+                                            label = paste0(percentage, "%"))) +
+                       geom_bar(stat = "identity", alpha = .60) +
+                       ggrepel::geom_text_repel(position = position_stack(vjust = .5), hjust = 0.5,
+                                                direction = "y", fontface = "bold",
+                                                size = 3, vjust = 0, force = 1,
+                                                min.segment.length = 1, segment.size = .5,
+                                                segment.colour = "lightgrey", box.padding = .1, ylim = c(0, 100)) +
+                       scale_y_continuous(limits = c(0, 101)) +
+                       scale_x_discrete(labels = c("EU Agency" = "EU Agency",
+                                                   "International NGO" = "INGO",
+                                                   "Local NGO" = "Local NGO",
+                                                   "Other EU" = "Other EU", 
+                                                   "UN Agency" = "UN Agency")) +
+                       scale_fill_manual(values = colours) + 
+                       theme(panel.grid = element_blank(),
+                             panel.grid.minor = element_blank(),
+                             axis.text.x = element_text(face = "bold"),
+                             axis.text.y = element_text(face = "bold"),
+                             axis.title.x = element_blank(),
+                             axis.title.y = element_blank(),
+                             title = element_text(face = "bold", size = 10, colour = "black")) + 
+                       ggtitle(str_wrap(.y, width = 80))
+  ))
+
+```
+
+
+```{r, eval = FALSE}
+#map2(paste0(unique(str_trunc(plot3$Question, width = 10, ellipsis = "")), 
+#            ".png"), plot3$plot, ggsave, width = 9, height = 5, unit = "in")
+
+```
+
+
+```{r}
+
+plot$plot[1]
+```
+
+
+  
+  
+
+```
+
+
+
+

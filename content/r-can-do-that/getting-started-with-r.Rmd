@@ -1,5 +1,5 @@
 ---
-title: 'Getting Started with R'
+title: 'R can... be easily installed and setup'
 author: "Corey Pembleton"
 date: '2017-01-01'
 output: html_document

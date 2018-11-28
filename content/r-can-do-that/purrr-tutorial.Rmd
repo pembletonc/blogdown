@@ -1,5 +1,5 @@
 ---
-title: "Using purrr and working with nested dataframes"
+title: "R can... purrr"
 author: "Corey Pembleton"
 date: '2018-11-11'
 output: html_document
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## purrr tutorial: valuable lessons in map_*ing
+## purrr tutorial: Using purrr and working with nested dataframes
 
 I'm still learning the functionality behind purrr, the tidyverse package which helps with the commonly found challenges in data management relating to splitting, applying analysis, and recombining the data. In this post, I walk through my progress in various purrr tutorials, and a few use cases of the ```purrr::map()``` functions. I will be doing some of this with a Canadian census dataset I created in a [previous post](https://coreypembleton.netlify.com/space-stats/canadian-census-data-cleaning-pt1/). Here we go down the purrr rabbit hole...
 

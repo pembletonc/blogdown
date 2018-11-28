@@ -1,5 +1,5 @@
 ---
-title: "(Pot) Stock Analysis"
+title: "R can... help choose stock options"
 author: "Corey Pembleton"
 date: "August 14, 2018"
 output: html_document

@@ -1,0 +1,89 @@
+---
+title: "Nesting, mapping, and plotting survey results"
+author: "Corey Pembleton"
+date: "November 28, 2018"
+output: html_document
+slug: "nesting-mapping-plotting-survey-results"
+---
+
+
+
+<pre class="r"><code>library(tidyverse)
+survey &lt;- read_csv(&quot;./fake_survey.csv&quot;)</code></pre>
+<div id="creating-a-workflow-to-produce-multiple-graphic-outputs" class="section level2">
+<h2>Creating a workflow to produce multiple graphic outputs</h2>
+<p>This is a great example of how with a little time and knowledge on what is possible programmatically a workflow can be made much more efficient.</p>
+<p>In a previous project, I encountered common task: cleaning survey data and producing a graphic output for each question, grouped according to four different stakeholder variables. With little knowledge of <code>purrr</code> or <code>tidyr</code> at that time, the only way I knew how to process that was by filtering each result, and copy-pasting the same ggplot code chunk, changing the title manually for each graph. This took a long time, longer than I care to admit, and was error-prone. I KNEW there was a faster way, but wasn’t sure what that would look like.</p>
+<p>I recently had a colleague approach me to ask about creating graphics, grouped in four different ways for 32 questions: requiring a total of 128 graphic outputs - and took the chance to do a little research in how I could automate my workflow more smoothly.</p>
+<p>After learning more about <code>purrr</code> and the <code>tidyr::nest()</code> <a href="https://coreypembleton.netlify.com/r-can-do-that/purrr-and-nesting-dataframes/">family of functions</a>, I realized I could pass the same ggplot code chunk to each of the questions by grouping and nesting them; and by using <code>map2()</code> to save the results as images with <code>ggsave()</code>. Following the lead of <a href="https://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/">B. Rodrigues</a> and working with some tailored survey data for client confidentiality reasons, I came up with the following:</p>
+<pre class="r"><code>colours = c(&quot;#ffffff&quot;, &quot;#648015&quot;, &quot;#97c020&quot;,&quot;#b5e4e9&quot;, &quot;#c0c5ca&quot;,   &quot;#7c8692&quot;)
+
+plot3 &lt;- survey %&gt;%
+  mutate(Question == str_trim(Question, &quot;both&quot;)) %&gt;%
+  filter(percentage &gt; 0) %&gt;%
+  group_by(Question) %&gt;% 
+  nest() %&gt;% 
+  mutate(plot = map2(data, Question,
+                     ~ggplot(data = .x, aes(x = stakeholder_group, y = percentage,
+                                            fill = Response,
+                                            label = paste0(percentage, &quot;%&quot;))) +
+                       geom_bar(stat = &quot;identity&quot;, alpha = .60) +
+                       ggrepel::geom_text_repel(position = position_stack(vjust = .5),
+                                                hjust = 0.5,
+                                                direction = &quot;y&quot;, 
+                                                fontface = &quot;bold&quot;,
+                                                size = 3, vjust = 0, force = 1,
+                                                min.segment.length = 1, 
+                                                segment.size = .5,
+                                                segment.colour = &quot;lightgrey&quot;,
+                                                box.padding = .1, 
+                                                ylim = c(0, 100)) +
+                       scale_y_continuous(limits = c(0, 101)) +
+                       scale_x_discrete(labels = c(&quot;EU Agency&quot; = &quot;EU Agency&quot;,
+                                                   &quot;International NGO&quot; = &quot;INGO&quot;,
+                                                   &quot;Local NGO&quot; = &quot;Local NGO&quot;,
+                                                   &quot;Other EU&quot; = &quot;Other EU&quot;, 
+                                                   &quot;UN Agency&quot; = &quot;UN Agency&quot;)) +
+                       scale_fill_manual(values = colours) + 
+                       theme(panel.grid = element_blank(),
+                             panel.grid.minor = element_blank(),
+                             axis.text.x = element_text(face = &quot;bold&quot;),
+                             axis.text.y = element_text(face = &quot;bold&quot;),
+                             axis.title.x = element_blank(),
+                             axis.title.y = element_blank(),
+                             title = element_text(face = &quot;bold&quot;, size = 10,
+                                                  colour = &quot;black&quot;),
+                             legend.position = &quot;bottom&quot;) + 
+                       ggtitle(str_wrap(.y, width = 80))
+  ))</code></pre>
+<p>Which creates an object, “plot3”, with nested dataframe containing the two variables as lists, grouped by the “Question” variable. One of these lists is the data from each question (e.g. responses by stakeholder), the other is the list of plots (here called as plot3$plot). To give a unique name matching the question, and ensure the names aren’t too long for a .png, I use <code>map2()</code> in the following way:</p>
+<pre class="r"><code>#map2(paste0(unique(str_trunc(plot3$Question, width = 10, ellipsis = &quot;&quot;)), 
+#            &quot;.png&quot;), plot3$plot, ggsave, width = 9, height = 5, unit = &quot;in&quot;)</code></pre>
+<p>I can examine each graph and table individually using <code>map2()</code> again, to make sure everything is in order:</p>
+<pre class="r"><code>map2(plot3, &quot;[&quot;, 1)</code></pre>
+<pre><code>## $Question
+## [1] &quot;Question 1&quot;
+## 
+## $data
+## # A tibble: 27 x 5
+##    stakeholder_group `Number of Resp… Response percentage `Question == st…
+##    &lt;chr&gt;                        &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;lgl&gt;           
+##  1 Local NGO                       24 Strongl…       4.17 TRUE            
+##  2 International NGO               30 Disagree      20    TRUE            
+##  3 UN Agency                       30 Disagree       3.33 TRUE            
+##  4 Local NGO                       24 Disagree       8.33 TRUE            
+##  5 EU Agency                       21 Disagree      23.8  TRUE            
+##  6 EU Member State                 11 Disagree       9.09 TRUE            
+##  7 Other EU                         5 Disagree      20    TRUE            
+##  8 International NGO               30 Do not …      16.7  TRUE            
+##  9 UN Agency                       30 Do not …       6.67 TRUE            
+## 10 EU Agency                       21 Do not …      14.3  TRUE            
+## # ... with 17 more rows
+## 
+## $plot</code></pre>
+<p><img src="/dev-eval/nest-map-plot-survey-results_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<div id="key-lessons-learned" class="section level3">
+<h3>Key lessons learned:</h3>
+<p>Figuring this process out took some time, but in the end, the learning investment is worth it. Adding formatted labels in the <code>position_stack()</code> setting, changing unique titles per graph, calling <code>.y</code> to ensure the title is matched to the question, and <code>str_wrap()</code> to ensure the titles aren’t super long, and using the nested <code>map2paste0(unique(str_trunc(plot))</code> to execute saving the file names were all new tools for me - if you have any thoughts on how this could be made more effecient, I’d love to hear how.</p>
+</div>
+</div>

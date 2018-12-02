@@ -3,7 +3,6 @@ title: "Nesting, mapping, and plotting survey results"
 author: "Corey Pembleton"
 date: "November 28, 2018"
 output: html_document
-draft: true
 slug: "nesting-mapping-plotting-survey-results"
 ---
 
@@ -11,25 +10,25 @@ slug: "nesting-mapping-plotting-survey-results"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## 
-
-
-
 
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
-library(gridExtra)
-library(grid)
 survey <- read_csv("./fake_survey.csv")
-
 ```
+## Creating a workflow to produce multiple graphic outputs
+
+This is a great example of how with a little time and knowledge on what is possible programmatically a workflow can be made much more efficient.  
+
+In a previous project, I encountered common task: cleaning survey data and producing a graphic output for each question, grouped according to four different stakeholder variables. With little knowledge of ```purrr``` or ```tidyr``` at that time, the only way I knew how to process that was by filtering each result, and copy-pasting the same ggplot code chunk, changing the title manually for each graph. This took a long time, longer than I care to admit, and was error-prone. I KNEW there was a faster way, but wasn't sure what that would look like.  
 
 
+I recently had a colleague approach me to ask about creating graphics, grouped in four different ways for 32 questions: requiring a total of 128 graphic outputs - and took the chance to do a little research in how I could automate my workflow more smoothly.
 
+After learning more about ```purrr``` and the ```tidyr::nest()``` [family of functions](https://coreypembleton.netlify.com/r-can-do-that/purrr-and-nesting-dataframes/), I realized I could pass the same ggplot code chunk to each of the questions by grouping and nesting them; and by using ```map2()``` to save the results as images with ```ggsave()```. Following the lead of [B. Rodrigues](https://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/) and working with some tailored survey data for client confidentiality reasons, I came up with the following: 
 
 
 ```{r}
-colours = c("#ffffff", "#648015", "#97c020","#b5e4e9", "#c0c5ca",	"#7c8692"  )
+colours = c("#ffffff", "#648015", "#97c020","#b5e4e9", "#c0c5ca",	"#7c8692")
 
 plot3 <- survey %>%
   mutate(Question == str_trim(Question, "both")) %>%
@@ -41,11 +40,16 @@ plot3 <- survey %>%
                                             fill = Response,
                                             label = paste0(percentage, "%"))) +
                        geom_bar(stat = "identity", alpha = .60) +
-                       ggrepel::geom_text_repel(position = position_stack(vjust = .5), hjust = 0.5,
-                                                direction = "y", fontface = "bold",
+                       ggrepel::geom_text_repel(position = position_stack(vjust = .5),
+                                                hjust = 0.5,
+                                                direction = "y", 
+                                                fontface = "bold",
                                                 size = 3, vjust = 0, force = 1,
-                                                min.segment.length = 1, segment.size = .5,
-                                                segment.colour = "lightgrey", box.padding = .1, ylim = c(0, 100)) +
+                                                min.segment.length = 1, 
+                                                segment.size = .5,
+                                                segment.colour = "lightgrey",
+                                                box.padding = .1, 
+                                                ylim = c(0, 100)) +
                        scale_y_continuous(limits = c(0, 101)) +
                        scale_x_discrete(labels = c("EU Agency" = "EU Agency",
                                                    "International NGO" = "INGO",
@@ -59,12 +63,16 @@ plot3 <- survey %>%
                              axis.text.y = element_text(face = "bold"),
                              axis.title.x = element_blank(),
                              axis.title.y = element_blank(),
-                             title = element_text(face = "bold", size = 10, colour = "black")) + 
+                             title = element_text(face = "bold", size = 10,
+                                                  colour = "black"),
+                             legend.position = "bottom") + 
                        ggtitle(str_wrap(.y, width = 80))
   ))
 
 ```
 
+
+Which creates an object, "plot3", with nested dataframe containing the two variables as lists, grouped by the "Question" variable. One of these lists is the data from each question (e.g. responses by stakeholder), the other is the list of plots (here called as plot3$plot). To give a unique name matching the question, and ensure the names aren't too long for a .png, I use ```map2()``` in the following way:
 
 ```{r, eval = FALSE}
 #map2(paste0(unique(str_trunc(plot3$Question, width = 10, ellipsis = "")), 
@@ -73,16 +81,17 @@ plot3 <- survey %>%
 ```
 
 
+I can examine each graph and table individually using ```map2()``` again, to make sure everything is in order:
 ```{r}
-
-plot$plot[1]
+map2(plot3, "[", 1)
 ```
 
+### Key lessons learned:
 
-  
-  
 
-```
+Figuring this process out took some time, but in the end, the learning investment is worth it. Adding formatted labels in the ```position_stack()``` setting, changing unique titles per graph, calling ```.y``` to ensure the title is matched to the question, and ```str_wrap()``` to ensure the titles aren't super long, and using the nested ```map2paste0(unique(str_trunc(plot))``` to execute saving the file names were all new tools for me - if you have any thoughts on how this could be made more effecient, I'd love to hear how.
+
+
 
 
 

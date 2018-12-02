@@ -66,22 +66,26 @@ plot3 &lt;- survey %&gt;%
 ## 
 ## $data
 ## # A tibble: 27 x 5
-##    stakeholder_group `Number of Resp… Response percentage `Question == st…
+##    stakeholder_group `Number of Resp~ Response percentage `Question == st~
 ##    &lt;chr&gt;                        &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;lgl&gt;           
-##  1 Local NGO                       24 Strongl…       4.17 TRUE            
+##  1 Local NGO                       24 Strongl~       4.17 TRUE            
 ##  2 International NGO               30 Disagree      20    TRUE            
 ##  3 UN Agency                       30 Disagree       3.33 TRUE            
 ##  4 Local NGO                       24 Disagree       8.33 TRUE            
 ##  5 EU Agency                       21 Disagree      23.8  TRUE            
 ##  6 EU Member State                 11 Disagree       9.09 TRUE            
 ##  7 Other EU                         5 Disagree      20    TRUE            
-##  8 International NGO               30 Do not …      16.7  TRUE            
-##  9 UN Agency                       30 Do not …       6.67 TRUE            
-## 10 EU Agency                       21 Do not …      14.3  TRUE            
+##  8 International NGO               30 Do not ~      16.7  TRUE            
+##  9 UN Agency                       30 Do not ~       6.67 TRUE            
+## 10 EU Agency                       21 Do not ~      14.3  TRUE            
 ## # ... with 17 more rows
 ## 
 ## $plot</code></pre>
 <p><img src="/dev-eval/nest-map-plot-survey-results_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<div class="figure">
+<img src="/img/Question%201.png" />
+
+</div>
 <div id="key-lessons-learned" class="section level3">
 <h3>Key lessons learned:</h3>
 <p>Figuring this process out took some time, but in the end, the learning investment is worth it. Adding formatted labels in the <code>position_stack()</code> setting, changing unique titles per graph, calling <code>.y</code> to ensure the title is matched to the question, and <code>str_wrap()</code> to ensure the titles aren’t super long, and using the nested <code>map2paste0(unique(str_trunc(plot))</code> to execute saving the file names were all new tools for me - if you have any thoughts on how this could be made more effecient, I’d love to hear how.</p>

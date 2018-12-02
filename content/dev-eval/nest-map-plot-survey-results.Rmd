@@ -86,6 +86,8 @@ I can examine each graph and table individually using ```map2()``` again, to mak
 map2(plot3, "[", 1)
 ```
 
+![](/img/Question 1.png)
+
 ### Key lessons learned:
 
 

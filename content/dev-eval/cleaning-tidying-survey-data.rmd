@@ -9,16 +9,34 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Working with Survey Data: Processing for Use
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
-Depending on the survey software used, the results exported as excel or .csv can often be fairly messy, and processing that data manually in excel can be time consuming and is prone to copy/paste or other munging errors. Using a real example (questions and stakeholder names changed), I present here one fairly replicable way to process survey data exported from SurveyMonkey.
+library(readxl)
+library(tidyverse)
+```
 
-## Importing
 
-Unlike a fairly clean dataset, SurveyMonkey results (in all instances I have seen) are exported with two or more header rows, the first used as a descriptive row for a main question, the second for the question itself. 
+## Working with Survey Data: Processing for Use and Visualization
+
+Depending on the survey software used, the results exported as excel or .csv can often be fairly messy, and processing that data manually in excel can be time consuming and is prone to copy/paste or other munging errors. Using a real example (questions and stakeholder names changed), I present here one fairly replicable way to process survey data exported from SurveyMonkey. I should note here that I didn't design this survey, there are several methodological flaws regarding response options and questions themselves, but that conversation is for another day.
+
+## Three Challenges with Survey Data
+
+#### 1. Multiple header rows
+Unlike a fairly clean dataset, SurveyMonkey results (in all instances I have seen) are exported with two or more header rows, the first used as a descriptive row for a main question, the second for the question itself.   
+This is a challenge when it comes to processing data, ensuring values are appropriately described by their columns is a fundamental first step. The first several columns contain descriptive information on the respondent, and can contain a key for future table joins. These descriptive aspects are stored in the first row, which ```read_excel()``` correctly sets as the header. The questions consist of two levels, a first overall question (first row, header), and a second which contains the responses (e.g. 1. & 1.1), in the second row. 
 
 ![Getting the import right is half the battle](/img/messy_survey.png)
 
 
+
+
+#### 2. Numeric and text responses combined
+
+
+```{r}
+survey <- read_excel("content/dev-eval/anon_survey.xlsx")
+
+```
 
 

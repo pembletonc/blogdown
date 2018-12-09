@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(readxl)
 library(tidyverse)
+library(kableExtra)
 ```
 
 
@@ -21,22 +22,94 @@ library(tidyverse)
 Depending on the survey software used, the results exported as excel or .csv can often be fairly messy, and processing that data manually in excel can be time consuming and is prone to copy/paste or other munging errors. Using a real example (questions and stakeholder names changed), I present here one fairly replicable way to process survey data exported from SurveyMonkey. I should note here that I didn't design this survey, there are several methodological flaws regarding response options and questions themselves, but that conversation is for another day.
 
 ## Three Challenges with Survey Data
+```{r}
+survey <- read_excel("./anon_survey.xlsx")
 
+```
 #### 1. Multiple header rows
-Unlike a fairly clean dataset, SurveyMonkey results (in all instances I have seen) are exported with two or more header rows, the first used as a descriptive row for a main question, the second for the question itself.   
-This is a challenge when it comes to processing data, ensuring values are appropriately described by their columns is a fundamental first step. The first several columns contain descriptive information on the respondent, and can contain a key for future table joins. These descriptive aspects are stored in the first row, which ```read_excel()``` correctly sets as the header. The questions consist of two levels, a first overall question (first row, header), and a second which contains the responses (e.g. 1. & 1.1), in the second row. 
+SurveyMonkey results are exported with two or more header rows. The first row is descriptive, for "parent" main questions, the second for the "child" subquestions, the data required is stored in the latter.  
+
+In addition to Questions, the first 1-10 columns contain descriptive information on the respondent, and other descriptive elements. These descriptive aspects are stored in the first row (along with the parent questions), which ```read_excel()``` correctly sets as the header. 
 
 ![Getting the import right is half the battle](/img/messy_survey.png)
 
-
-
-
-#### 2. Numeric and text responses combined
+Because of this structure, ```name()``` can't be set on import, and some manipulation is required. This method, which  I've taken from [Lisa DeBruine]("https://debruine.github.io/multirow_headers.html"), is helpful in that columns don't have to be manually identified, and is reusable for any survey. 
 
 
 ```{r}
-survey <- read_excel("content/dev-eval/anon_survey.xlsx")
+new_names <- survey %>% 
+  t() %>% 
+  as_tibble() %>% 
+  mutate(name = paste(V1, sep = "_")) %>% 
+  pull(name)
+
+new_names[1:4] <- c("stakeholder_group", "gender", "position", "sector")
 
 ```
+
+Which can now be applied to the survey data, and the first row dropped. 
+```{r}
+names(survey) <- new_names
+survey <- survey[-1,]
+```
+
+There are duplicate columns names which will cause trouble if you want to analyze right away, but they'll get dealt with in the next step.
+
+#### 2. Numeric and text responses combined
+
+Separating the quantitative response values from the qualitative is a necessary step for future gathering and tallying responses. The qualitative responses vary in length, and sometimes are their own question, or are an addition to a numeric question. 
+
+In this case, the qualitative questions are all the same, there are "Other" categories sometimes used when none of the options are suitable but a response is required. I generally reccommend avoiding these, as the single-value responses like this take longer to analyze and more often than not are closely aligned to one of the options.
+
+```{r}
+survey_text <- survey %>% 
+  setNames(make.unique(names(.))) %>%
+  select(stakeholder_group:sector, contains("Other"))
+
+survey <- survey %>% 
+    setNames(make.unique(names(.))) %>%
+    select(everything(), -contains("Other"))
+
+```
+
+###3. Removing the non-responsive respondents
+
+Without spending much detail on this, for some reason on the survey export I get all respondents, even those which closed the survey at the beginning. These respondents have ```NA``` values for all responses. Any one of the respondent characteristics can be filtered out and removed:
+
+```{r}
+survey <- survey %>% filter(!is.na(gender))
+```
+
+Now that the data is renamed and cleaned, the tidying and counting can begin!
+
+![](https://media.giphy.com/media/rt62KfHCCpyP6/giphy.gif)
+
+## Tidying the dataset: gather, group, tally, spread
+
+The problem with the way the data is presently structured is that each question value has it's own column (opposed to combined in the same "question" variable column), the current ratings (e.g. good or very good) are text, but we need a count, and there are values where respondents could choose not to answer, giving a <N/A> Value. 
+
+```{r}
+survey_counts <-  survey %>% 
+  gather(key = Question, value = Response,
+         "1.1 Refugees have been consulted in the design of AGENCY-funded projects":"1.4 A gender-sensitive needs assessment, or a gender analysis, was undertaken in the design and implementation of interventions") %>% 
+  group_by(stakeholder_group, Question, Response) %>% 
+  tally %>% 
+  spread(Response, n, fill = 0) %>% 
+  select(stakeholder_group, Question,`Strongly disagree`, Disagree, `Do not know/ Not applicable`, Agree,
+         `Strongly agree`, no_response = `<NA>`) %>%
+  filter(!is.na(stakeholder_group))
+
+```
+
+
+```{r, echo=FALSE}
+
+survey_counts %>% 
+  arrange(Question) %>% 
+  kable() %>% 
+  kable_styling(full_width = F)
+```
+
+
 
 

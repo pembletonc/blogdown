@@ -7,10 +7,10 @@ description: "homepage"
 <img src = "img/corey1.jpg" style="width:40%; border:2px solid; margin-right: 20px" align="left"/>
 
 
-In its simpleset form, the posts here are an exploration of how the quantitative and qualitative data sources used to form judgement in how international development evaluative practices can be better informed through analysis, representation, and automation in the R programming language.  
+This blog is a living document, a work-in-progress of the various ways which my interests of international development, statistics, and spatial analysis intersect with the *R programming language*. You can find the source code for everything on the site on my [github page](https://github.com/pembletonc), and linked within each respective post. 
 
 -----
 
-This site is contructed using the [blogdown](https://github.com/rstudio/blogdown) R package and [Hugo](https://gohugo.io/). All opinions represented in this blog are my own, and do not represent those of my employer. 
+This site is contructed using the [blogdown](https://github.com/rstudio/blogdown) R package and [Hugo](https://gohugo.io/). 
 
 

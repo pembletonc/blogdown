@@ -11,6 +11,12 @@ This blog is a living document, a work-in-progress of the various ways which my 
 
 I am highly indebted to the R community for providing the opportunities for self-learning needed to perform pretty much everything on the site, including its very existence. 
 
+## About the author
+
+Corey Pembleton is an international development evaluation analyst, veteran, and geography graduate from Ontario, Canada, who is currently based in Montreal. [Get in touch](https://twitter.com/coreypembleton) if you want to talk about various nerdy subjects such as urban geography, rstats, or datascience type of stuff!
+
+
+
 Some of the resources which have been the most influential to me:
 
 ### Data Analysis and Manipulation

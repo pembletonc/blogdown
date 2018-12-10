@@ -50,7 +50,7 @@ survey &lt;- survey %&gt;%
 </div>
 <div id="removing-the-non-responsive-respondents" class="section level3">
 <h3>3. Removing the non-responsive respondents</h3>
-<p>Without spending much detail on this, for some reason on the survey export I get all respondents, even those which closed the survey at the beginning. These respondents have <code>NA</code> values for all responses. Any one of the respondent characteristics can be filtered out and removed:</p>
+<p>Some respondents exported from SurveyMonkey often appear to have dropped the survey, and these respondents have <code>NA</code> values for all responses. Any one of the respondent characteristics can be filtered out to remove these non-respondents.</p>
 <pre class="r"><code>survey &lt;- survey %&gt;% filter(!is.na(gender))</code></pre>
 <p>Now that the data is renamed and cleaned, the tidying and counting can begin!</p>
 <div class="figure">
@@ -61,7 +61,8 @@ survey &lt;- survey %&gt;%
 </div>
 <div id="tidying-the-dataset-gather-group-tally-spread" class="section level2">
 <h2>Tidying the dataset: gather, group, tally, spread</h2>
-<p>The problem with the way the data is presently structured is that each question value has it’s own column (opposed to combined in the same “question” variable column), the current ratings (e.g. good or very good) are text, but we need a count, and there are values where respondents could choose not to answer, giving a <N/A> Value.</p>
+<p>The problem with the way the data is presently structured is that each question “value” has its own column (opposed to being combined in the same “question” variable column), the current ratings (e.g. good or very good) are text values, but we need a count, and there are values where respondents could choose not to answer, giving a <N/A> Value.</p>
+<p>All of these can be sorted out with the following code chunk:</p>
 <pre class="r"><code>survey_counts &lt;-  survey %&gt;% 
   gather(key = Question, value = Response,
          &quot;1.1 Refugees have been consulted in the design of AGENCY-funded projects&quot;:&quot;1.4 A gender-sensitive needs assessment, or a gender analysis, was undertaken in the design and implementation of interventions&quot;) %&gt;% 
@@ -71,6 +72,7 @@ survey &lt;- survey %&gt;%
   select(stakeholder_group, Question,`Strongly disagree`, Disagree, `Do not know/ Not applicable`, Agree,
          `Strongly agree`, no_response = `&lt;NA&gt;`) %&gt;%
   filter(!is.na(stakeholder_group))</code></pre>
+<p>the weakness of this approach is that the gather questions need to be specified (will need to be changed for every survey), and the variables selected will need to be changed according to each question type. The latter will be experimented with further to see how different question response scales can be analyzed differently.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:unnamed-chunk-8">Table 1: </span>All respondent values have now been tallied
@@ -109,7 +111,7 @@ no_response
 AGENCY
 </td>
 <td style="text-align:left;">
-1.1 Refugees have been consulted in the design of AGENCY-funded projects
+1.1 Refugees have…
 </td>
 <td style="text-align:right;">
 0
@@ -135,7 +137,7 @@ AGENCY
 EU Member State
 </td>
 <td style="text-align:left;">
-1.1 Refugees have been consulted in the design of AGENCY-funded projects
+1.1 Refugees have…
 </td>
 <td style="text-align:right;">
 0
@@ -161,7 +163,7 @@ EU Member State
 INGO
 </td>
 <td style="text-align:left;">
-1.1 Refugees have been consulted in the design of AGENCY-funded projects
+1.1 Refugees have…
 </td>
 <td style="text-align:right;">
 0
@@ -187,7 +189,7 @@ INGO
 Local NGO
 </td>
 <td style="text-align:left;">
-1.1 Refugees have been consulted in the design of AGENCY-funded projects
+1.1 Refugees have…
 </td>
 <td style="text-align:right;">
 1
@@ -213,7 +215,7 @@ Local NGO
 Other EU
 </td>
 <td style="text-align:left;">
-1.1 Refugees have been consulted in the design of AGENCY-funded projects
+1.1 Refugees have…
 </td>
 <td style="text-align:right;">
 0
@@ -236,4 +238,34 @@ Other EU
 </tr>
 </tbody>
 </table>
+</div>
+<div id="measuring-proportionate-responses" class="section level2">
+<h2>Measuring Proportionate Responses</h2>
+<p>Counts are helpful, but most of the time what we really want is to know the proportion of their response compared to the overall responses. This is also a helpful step to get out of the way when preparing graphics to display results (as found <a href="http://coreypembleton.netlify.com/dev-eval/nesting-mapping-plotting-survey-results/">here</a>).</p>
+<p>Considering how often I work with surveys, I created a function to determine the proportions. Like above, it requires some minor tweaking on a project-by-project basis, and I hope to improve it in the not-so-distant future.</p>
+<pre class="r"><code>#create a function to determine proportions
+Proportions_Function &lt;- function(tbl){
+  tbl %&gt;% 
+    summarise(`Number of Responses` = sum(`Strongly disagree` + `Disagree`+`Do not know/ Not applicable`+
+                                            `Agree`+`Strongly agree` + no_response, na.rm = TRUE),
+              `Strongly disagree`= sum(`Strongly disagree`/`Number of Responses`, na.rm = TRUE) * 100,
+              `Disagree` = sum(`Disagree` / `Number of Responses`, na.rm = TRUE) * 100,
+              `Do not know/ Not applicable` = sum(`Do not know/ Not applicable` / `Number of Responses`, na.rm = TRUE)* 100,
+              `Agree` = sum(`Agree` / `Number of Responses`, na.rm = TRUE) * 100,
+              `Strongly agree` = sum(`Strongly agree` / `Number of Responses`, na.rm = TRUE) * 100,
+              `no_response` = sum(no_response / `Number of Responses`, na.rm = TRUE) * 100
+    ) %&gt;% 
+    mutate_if(is.numeric, round, digits = 2) %&gt;% 
+    arrange(desc(`Number of Responses`))
+}
+
+stakeholder_proportions &lt;- survey_counts %&gt;% 
+  Proportions_Function() %&gt;% 
+  arrange(Question)</code></pre>
+<p>And with that, we now have two tables, one for stakeholder response proportions, and another for stakeholder responses by counts. In my experience, this workflow can bring on massive time savings, is fairly replicable across survey projects, and lends very well to excel table or graphic exports with anonymized findings for clients.</p>
+<p>To find out how to export these as tabbed or single-page excel documents, check out <a href="http://coreypembleton.netlify.com/r-can-do-that/open-xlsx-create-excel-workbooks/">my other post on that topic</a>, and to learn how to quickly produce graphics for those proportion tables, be sure to check <a href="http://coreypembleton.netlify.com/dev-eval/nesting-mapping-plotting-survey-results/">this</a> <code>purrr::map2()</code> workflow.</p>
+</div>
+<div id="key-lessons-learned" class="section level2">
+<h2>Key lessons learned</h2>
+<p>Creating a set of tables which count the results from surveys can be a straight-forward process. The more I work with this type of data, the more I improve the efficiency of the script itself. learning to add <code>tally</code> without the brackets was a breakthrough, and to change the columns with the same name “Other - please respond” with <code>setNames(make.unique(names(.)))</code> is an unelegant solution I would like to improve with <code>rename_at()</code>, but haven’t figured out as of yet. Lastly, the proportions function needs to become more functional. it’s currently prone to error, and needs to be able to better incorporate changes, for example to account for different sums, unique column names and question types, and generally to be more flexible.</p>
 </div>

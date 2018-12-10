@@ -76,7 +76,7 @@ survey <- survey %>%
 
 ###3. Removing the non-responsive respondents
 
-Without spending much detail on this, for some reason on the survey export I get all respondents, even those which closed the survey at the beginning. These respondents have ```NA``` values for all responses. Any one of the respondent characteristics can be filtered out and removed:
+Some respondents exported from SurveyMonkey often appear to have dropped the survey, and these respondents have ```NA``` values for all responses. Any one of the respondent characteristics can be filtered out to remove these non-respondents. 
 
 ```{r}
 survey <- survey %>% filter(!is.na(gender))
@@ -88,7 +88,9 @@ Now that the data is renamed and cleaned, the tidying and counting can begin!
 
 ## Tidying the dataset: gather, group, tally, spread
 
-The problem with the way the data is presently structured is that each question value has it's own column (opposed to combined in the same "question" variable column), the current ratings (e.g. good or very good) are text, but we need a count, and there are values where respondents could choose not to answer, giving a <N/A> Value. 
+The problem with the way the data is presently structured is that each question "value" has its own column (opposed to being combined in the same "question" variable column), the current ratings (e.g. good or very good) are text values, but we need a count, and there are values where respondents could choose not to answer, giving a <N/A> Value.  
+
+All of these can be sorted out with the following code chunk:
 
 ```{r}
 survey_counts <-  survey %>% 
@@ -103,12 +105,65 @@ survey_counts <-  survey %>%
 
 ```
 
+the weakness of this approach is that the gather questions need to be specified (will need to be changed for every survey), and the variables selected will need to be changed according to each question type. The latter will be experimented with further to see how different question response scales can be analyzed differently. 
+
 
 ```{r, echo=FALSE}
 
 survey_counts %>% 
+  ungroup() %>% 
   arrange(Question) %>%
   head(5) %>% 
+  mutate(Question = str_trunc(Question, 20, ellipsis = "...")) %>% 
   knitr::kable("html", caption = "All respondent values have now been tallied") %>% 
   kable_styling(full_width = F, position = "center")
 ```
+
+
+## Measuring Proportionate Responses
+
+Counts are helpful, but most of the time what we really want is to know the proportion of their response compared to the overall responses. This is also a helpful step to get out of the way when preparing graphics to display results (as found [here](http://coreypembleton.netlify.com/dev-eval/nesting-mapping-plotting-survey-results/)).    
+
+Considering how often I work with surveys, I created a function to determine the proportions. Like above, it requires some minor tweaking on a project-by-project basis, and I hope to improve it in the not-so-distant future. 
+
+```{r}
+#create a function to determine proportions
+Proportions_Function <- function(tbl){
+  tbl %>% 
+    summarise(`Number of Responses` = sum(`Strongly disagree` + `Disagree`+`Do not know/ Not applicable`+
+                                            `Agree`+`Strongly agree` + no_response, na.rm = TRUE),
+              `Strongly disagree`= sum(`Strongly disagree`/`Number of Responses`, na.rm = TRUE) * 100,
+              `Disagree` = sum(`Disagree` / `Number of Responses`, na.rm = TRUE) * 100,
+              `Do not know/ Not applicable` = sum(`Do not know/ Not applicable` / `Number of Responses`, na.rm = TRUE)* 100,
+              `Agree` = sum(`Agree` / `Number of Responses`, na.rm = TRUE) * 100,
+              `Strongly agree` = sum(`Strongly agree` / `Number of Responses`, na.rm = TRUE) * 100,
+              `no_response` = sum(no_response / `Number of Responses`, na.rm = TRUE) * 100
+    ) %>% 
+    mutate_if(is.numeric, round, digits = 2) %>% 
+    arrange(desc(`Number of Responses`))
+}
+
+stakeholder_proportions <- survey_counts %>% 
+  Proportions_Function() %>% 
+  arrange(Question)
+
+```
+
+And with that, we now have two tables, one for stakeholder response proportions, and another for stakeholder responses by counts. In my experience, this workflow can bring on massive time savings, is fairly replicable across survey projects, and lends very well to excel table or graphic exports with anonymized findings for clients. 
+
+To find out how to export these as tabbed or single-page excel documents, check out [my other post on that topic](http://coreypembleton.netlify.com/r-can-do-that/open-xlsx-create-excel-workbooks/), and to learn how to quickly produce graphics for those proportion tables, be sure to check [this](http://coreypembleton.netlify.com/dev-eval/nesting-mapping-plotting-survey-results/) ```purrr::map2()``` workflow.
+
+
+## Key lessons learned
+
+Creating a set of tables which count the results from surveys can be a straight-forward process. The more I work with this type of data, the more I improve the efficiency of the script itself. learning to add ```tally``` without the brackets was a breakthrough, and to change the columns with the same name "Other - please respond" with ```setNames(make.unique(names(.)))``` is an unelegant solution I would like to improve with ```rename_at()```, but haven't figured out as of yet. Lastly, the proportions function needs to become more functional. it's currently prone to error, and needs to be able to better incorporate changes, for example to account for different sums, unique column names and question types, and generally to be more flexible. 
+
+
+
+
+
+
+
+
+
+

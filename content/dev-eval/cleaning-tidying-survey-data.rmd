@@ -47,6 +47,8 @@ new_names[1:4] <- c("stakeholder_group", "gender", "position", "sector")
 
 ```
 
+
+
 Which can now be applied to the survey data, and the first row dropped. 
 ```{r}
 names(survey) <- new_names
@@ -105,11 +107,8 @@ survey_counts <-  survey %>%
 ```{r, echo=FALSE}
 
 survey_counts %>% 
-  arrange(Question) %>% 
+  arrange(Question) %>%
+  head(5) %>% 
   kable() %>% 
   kable_styling(full_width = F)
 ```
-
-
-
-

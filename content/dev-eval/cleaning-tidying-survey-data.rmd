@@ -109,6 +109,6 @@ survey_counts <-  survey %>%
 survey_counts %>% 
   arrange(Question) %>%
   head(5) %>% 
-  kable() %>% 
-  kable_styling(full_width = F)
+  knitr::kable("html", caption = "All respondent values have now been tallied") %>% 
+  kable_styling(full_width = F, position = "center")
 ```

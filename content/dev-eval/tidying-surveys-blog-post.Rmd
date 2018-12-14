@@ -1,0 +1,61 @@
+---
+title: "Summary-Tidy-Surveys"
+author: "Corey Pembleton"
+date: '2018-12-13'
+output: html_document
+slug: tidy-surveys-good-surveys
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## How to use data science methods to save time and increase the quality of your survey analysis 
+
+Data science methods just might be the silver bullet to finally put an end to the nightmare that can be survey analyses.
+
+In my firm we carry out close to 50 surveys a year, and I estimate that an analyst or consultant spends a minimum of 3 days processing those results in excel – a total of 150 days a year across all projects. This means that at any given time there is probably someone analyzing survey data, a task which requires nearly a full-time salaried person dedicated to it year-round. I propose here that by incorporating data science principles into your workflow, that time can be brought down to several hours, or at most a full workday - saving 2/3 of the time it normally takes.
+
+## Improve quality without sacrificing on time
+
+Creating graphics by hand across different teams means that different approaches will impact consistency in data representation and in the ability to reproduce results across teams (what if someone leaves halfway through a project?), negatively affecting firm-wide quality. By taking a data science approach which consists of the same (more or less) three steps in every analysis, consistency and quality can prevail across all teams, and it will speed up your workflow in the meantime.
+
+Processing survey results manually can be time consuming - I estimate that if it takes 10 minutes per survey question to make a graph in excel, and most surveys have over 30 questions - it would mean five hours to make the charts alone, and likely another several hours making formatted tables for each question. The other time-killer with this is at the back-end of a project - if the client wants a change made to every chart and table, there's the very real risk of needing to repeat the entire process over again!
+
+##Tools of the trade
+
+I'm not a fan of letting the method drive the analysis, the methods and tools used should be those best suited to the task at hand, and your level of proficiency using these tools. I prefer using programmatic approaches (such as R) for data manipulation for many reasons, but acknowledge that it may not be for everyone. So while I tend to focus on the advantages these bring, the general data science principles and approaches I take in this article can be used across different commonly used software packages such as Excel, Tableau, and Piktocart (or a combination of these).
+
+Given that, those with experience programming in R can check out the code-through here to produce the tables, and here for the graphics, and try to apply them to your own survey analysis workflow.
+
+##Tidy up your data: "Garbage in, Garbage out"
+
+Your final product, be it a graphic or a table, is only going to be as good as the data you use to create it. Garbage data in, garbage product out. In most data science workflows the first step is tidying the data by following the three data tidying principles: each variable must have its own column (e.g. instead of each question having it's own column, there will be one column with all questions in the "long" format seen below), each observation must have its own row (e.g. respondent, stakeholder group), and each value must have its own cell (no commas separating multiple values in a cell!). This allows for a more logical workflow to be followed, and sets the data up for success in creating clear tables and graphics.
+
+Tidying data can mean anything from removing white spaces, splitting cells with more than one value, ensuring each variable has its own column (values aren’t column headers), `Not Available` (NA) values are accounted for, and any other data “cleaning” processes that are needed.
+
+The goal is to meet the three tidy data principles, so while the tasks will always change on a case-by-case basis, the workflow remains the same.
+
+![](./img/spread-gather.gif)
+
+##Get accurate counts and proportions for each response
+
+Getting counts and proportions from text-value responses (e.g. “Very Good”, “Not Applicable”) is what programming tools do best. I also slip in the last data “tidying” method here: I gather each question into a single “question” column – this will make like much easier when making tables and graphics. Although the respondent, here as the "stakeholder group" column, are repeated, I now have each response grouped by respondent and counted, which can be manipulated further to get a proportionate count as well (helpful for interpretation of results). 
+
+##Work smart, not hard: Export the tables all at once
+
+I’ve seen people painstakingly cut-pasting single rows into Microsoft word tables for 40 tables only to realize that they had the rows in the wrong order. This isn’t working very smart. Slice and dice your table as you like, add in a summary row per question for comparison, and export your findings into a formatted excel table with a few lines of code in R (for the full workflow and excel layout, check this 2 minute read).
+
+
+##Work smart, not hard: create all the graphics at once
+
+The pièce de résistance is here: create a single graphic design, loop it through each question, and save each question as its own graphic. Or combine them four to a page. However you want to lay it out, is a quick fix. Either way, it can all be done with almost no additional work - if steps 1 and 2 above were well-heeded (this is where you find out if you have ‘garbage out’ or not). 
+
+By writing a script once, you can reuse every time, and create original graphics all at the same time:
+
+##Focus on what's important:  
+*  Good data in, good product out: Don't sell yourself short in the data cleaning stage. it might not be glorious, but you'll thank yourself later
+*  Work smart, not hard: Repeating the same cut-and-paste process more than five times? Might be time to invest in the time spent learning how to automate your workflow
+*  Make your workflow reproducible: Get the results you want, and make sure others can make the same result with your data
+Check our the original code-throughs and more information on how using data science approaches can boost your workflow here.
+

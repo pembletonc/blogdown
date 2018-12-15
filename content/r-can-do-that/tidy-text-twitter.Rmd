@@ -4,6 +4,7 @@ author: "Corey Pembleton"
 date: "6/18/2018"
 output: html_page
 slug: r-can-tweet
+tags: ["rstats", "datascience", "text analysis"]
 ---
 
 ```{r setup, include=FALSE}

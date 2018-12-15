@@ -1,0 +1,47 @@
+---
+title: "Media Monitoring Analysis in R"
+author: "Corey Pembleton"
+date: '2018-12-15'
+output: html_document
+slug: media-monitoring-analysis-using-r
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Media Monitoring Analysis: 
+
+As a consultant, I have to wear many different hats. Some days I'm munging a portfolio, another leading a focus group, and on another catching a flight to Kathmandu to participate in a workshop. It's the beauty of my job, and keeps things spicy. Not doing the same thing all the time means I'm learning constantly, which is what this story is about.  
+
+A client with a well-established media presence wanted a "traditional and social media analysis" to understand the reach and impact of their program. We helped with the analysis and details, but they ended hiring a specialist on the subject to collect the data, give us the stats, etc. I had a feeling that with a bit of looking around, I could pull of a similar piece of work.    
+
+In general there are a few things people commonly want out of a media monitoring analysis: Reach (how many are seeing your content), engagement (who are your followers?), and Content analysis (what does the content say). 
+
+I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). For no reason in particular, this post will feature images and gifs from Doctor Who.  
+
+
+![](https://media.giphy.com/media/CP1AxXkLuUdFu/giphy.gif){ width=200% }
+
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(rtweet)
+library(tidygraph)
+```
+
+## Reach
+
+
+
+## Engagement
+
+
+
+## Content Analysis
+
+
+
+
+

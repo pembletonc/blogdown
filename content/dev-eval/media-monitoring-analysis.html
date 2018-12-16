@@ -21,13 +21,49 @@ draft: true
 </div>
 <pre class="r"><code>library(tidyverse)
 library(rtweet)
-library(tidygraph)</code></pre>
+library(tidygraph)
+library(ggraph)
+library(igraph)</code></pre>
 </div>
 <div id="reach" class="section level2">
 <h2>Reach</h2>
+<p>How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the <code>rtweet</code> vignette, it goes like this:</p>
+<pre class="r"><code>tweets &lt;- search_tweets(&quot;#COP24&quot;, n = 1500, include_rts = FALSE,
+                    retryonratelimit = FALSE)</code></pre>
+<pre><code>## Searching for tweets...</code></pre>
+<pre><code>## Finished collecting tweets!</code></pre>
+<p><img src="/dev-eval/media-monitoring-analysis_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Understanding tweet “reach” can be accompanied by understanding the relationship between who is “retweeting” the same tweets. Using the <code>ggraph</code> package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using <code>igraph</code>.</p>
+<pre class="r"><code>filter(tweets, retweet_count &gt; 0) %&gt;% 
+  select(screen_name, mentions_screen_name) %&gt;%
+  unnest(mentions_screen_name) %&gt;% 
+  filter(!is.na(mentions_screen_name)) %&gt;% 
+  igraph::graph_from_data_frame() -&gt; rt_g
+
+#clean up the names, and only use the names with X amount of retweets
+V(rt_g)$node_label &lt;- unname(ifelse(degree(rt_g)[V(rt_g)] &gt; 10, names(V(rt_g)), &quot;&quot;)) 
+V(rt_g)$node_size &lt;- unname(ifelse(degree(rt_g)[V(rt_g)] &gt; 10, degree(rt_g), 0)) </code></pre>
+<p>With a resulting graphical representation showing the users who have been most commonly re-tweeted (remembering that this is for a small set of tweets only, changing the size of the tweet collection will drastically change the results).</p>
+<pre class="r"><code>ggraph(rt_g, layout = &#39;linear&#39;, circular = TRUE) + 
+  geom_edge_arc(edge_width=0.125, aes(alpha=..index..)) +
+  geom_node_label(aes(label=node_label, size=node_size),
+                  label.size=0, fill=&quot;#ffffff66&quot;, segment.colour=&quot;springgreen&quot;,
+                  color=&quot;slateblue&quot;, repel=TRUE, fontface=&quot;bold&quot;) +
+  coord_fixed() +
+  scale_size_area(trans=&quot;sqrt&quot;) +
+  labs(title=&quot;Retweet Relationships&quot;, subtitle=&quot;Most retweeted screen names labeled.\nDarkers edges == more retweets. Node size == larger degree&quot;) +
+  theme_graph() +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="/img/graph_relationships.png" style="width:200.0%" />
+
+</div>
+<p>Lesson learned:<br />
+This gives us some idea of who are the most visible actors in the media set being analyzed, and opens the door for future engagement potential - if some names stand out as being active in certain topics, how can they be better engaged with to extend the client’s reach?</p>
 </div>
 <div id="engagement" class="section level2">
 <h2>Engagement</h2>
+<p>The level of engagement</p>
 </div>
 <div id="content-analysis" class="section level2">
 <h2>Content Analysis</h2>

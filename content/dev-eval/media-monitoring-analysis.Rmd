@@ -22,7 +22,7 @@ In general there are a few things people commonly want out of a media monitoring
 I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). For no reason in particular, this post will feature images and gifs from Doctor Who.  
 
 
-![](https://media.giphy.com/media/CP1AxXkLuUdFu/giphy.gif){ width=200% }
+![](https://media.giphy.com/media/CP1AxXkLuUdFu/giphy.gif){ width=150% }
 
 
 ```{r, warning=FALSE, message=FALSE}
@@ -31,12 +31,13 @@ library(rtweet)
 library(tidygraph)
 library(ggraph)
 library(igraph)
+library(scales)
 ```
 
 ## Reach
 How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, it goes like this:
 
-```{r}
+```{r, cache=TRUE}
 tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
                     retryonratelimit = FALSE)
 
@@ -48,7 +49,7 @@ ts_plot(tweets, "15 minutes") +
   theme(plot.title = element_text(face = "bold")) +
   labs(
     x = NULL, y = NULL,
-    title = "Frequency of #evaluation Twitter statuses",
+    title = "Frequency of #COP24 Twitter statuses",
     subtitle = "Twitter status (tweet) counts aggregated using 15-minute intervals",
     caption = "\nSource: Data collected from Twitter's REST API via rtweet"
   )
@@ -94,7 +95,7 @@ Understanding the level of engagement certain content has is helpful in determin
 
 Like many of the useful functions found in ```rtweet```, ```get_followers()```,  allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from [rud.is](https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html), and like he states should further integrate favourites and retweets for a more accurate measure. Using his "influence_snapshot" function, I can create a rapid measure of potential overall influence, by user:
 
-```{r, echo=FALSE}
+```{r, echo=TRUE, eval = FALSE}
 influence_snapshot <- function(user, trans=c("log10", "identity")) {
   
   user <- user[1]
@@ -112,7 +113,6 @@ influence_snapshot <- function(user, trans=c("log10", "identity")) {
     geom_density(aes(y=..count..), color="lightslategray", fill="lightslategray",
                  alpha=2/3, size=1) +
     scale_x_continuous(expand=c(0,0), trans="log10", labels=scales::comma) +
-    scale_y_comma() +
     labs(
       x="Number of Followers of Followers (log scale)", 
       y="Number of Followers",
@@ -132,12 +132,17 @@ influence_snapshot <- function(user, trans=c("log10", "identity")) {
 
 ```
 
-```{r}
-influence_snapshot("UNICEF")
+```{r, cache = TRUE, eval=FALSE}
+influence_snapshot("juliasilge")
 
 ```
 
-With the addition of other metrics and when broken down during specific time periods (e.g. to measure a campaign's influence), this could be a powerful tool to determine influence.
+In this case, we can determine the "primary influence / reach" of Dr. Julia Silge, lead datascientist and text mining pioneer at stackoverflow at nearly 6M people. 
+
+![](/img/16_js-1.png)
+
+
+With the addition of other metrics and when broken down during specific time periods (e.g. to measure a campaign's influence), this could be a powerful tool to determine influence, as it stands, it is easy to see how this amount of "influence" can be interpreted in many different ways.
 
 
 ## Content Analysis - sentiment analysis
@@ -145,6 +150,11 @@ With the addition of other metrics and when broken down during specific time per
 Content analysis of traditional and social media is a long-standing method for interpreting the details of media content itself, the meat and potatoes of what's being said (rather than how many people said something). Traditional content analysis means having a human read and categorize certain types of media according to what is being said in the article. For example if there are positive or negative references to a program or organization, would be performing an analysis of the overall sentiment of a specific topic. 
 
 Similarly, the content of socia media content can be analyze for sentiment. I've already went into this in a [small amount of detail](), and can explore the topic further now. By cross-referencing single words, two-word combinations (bi-gram), or multiple word combinations (n-gram) to specific words within the [ lexicon](), an overall sentiment rating can be determined. 
+
+
+
+
+
 
 
 

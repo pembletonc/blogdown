@@ -16,14 +16,15 @@ draft: true
 <p>In general there are a few things people commonly want out of a media monitoring analysis: Reach (how many are seeing your content), engagement (who are your followers?), and Content analysis (what does the content say).</p>
 <p>I’ll use the <code>rtweet</code> package developed by <a href="https://mikewk.com/">M. Kearny</a> for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like <a href="https://rud.is/books/21-recipes/">here</a> and <a href="http://rpubs.com/ben_bellman/rtweet_tidygraph">here</a>. For no reason in particular, this post will feature images and gifs from Doctor Who.</p>
 <div class="figure">
-<img src="https://media.giphy.com/media/CP1AxXkLuUdFu/giphy.gif" style="width:200.0%" />
+<img src="https://media.giphy.com/media/CP1AxXkLuUdFu/giphy.gif" style="width:150.0%" />
 
 </div>
 <pre class="r"><code>library(tidyverse)
 library(rtweet)
 library(tidygraph)
 library(ggraph)
-library(igraph)</code></pre>
+library(igraph)
+library(scales)</code></pre>
 </div>
 <div id="reach" class="section level2">
 <h2>Reach</h2>
@@ -58,13 +59,54 @@ V(rt_g)$node_size &lt;- unname(ifelse(degree(rt_g)[V(rt_g)] &gt; 10, degree(rt_g
 <img src="/img/graph_relationships.png" style="width:200.0%" />
 
 </div>
-<p>Lesson learned:<br />
-This gives us some idea of who are the most visible actors in the media set being analyzed, and opens the door for future engagement potential - if some names stand out as being active in certain topics, how can they be better engaged with to extend the client’s reach?</p>
+<p>This gives us some idea of who are the most visible actors in the media set being analyzed, and opens the door for future engagement potential - if some names stand out as being active in certain topics, how can they be better engaged with to extend the client’s reach?</p>
 </div>
-<div id="engagement" class="section level2">
-<h2>Engagement</h2>
-<p>The level of engagement</p>
+<div id="engagement---influence" class="section level2">
+<h2>Engagement - Influence</h2>
+<p>Understanding the level of engagement certain content has is helpful in determining the overall effectiveness of social media pieces. One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers.</p>
+<p>Like many of the useful functions found in <code>rtweet</code>, <code>get_followers()</code>, allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from <a href="https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html">rud.is</a>, and like he states should further integrate favourites and retweets for a more accurate measure. Using his “influence_snapshot” function, I can create a rapid measure of potential overall influence, by user:</p>
+<pre class="r"><code>influence_snapshot &lt;- function(user, trans=c(&quot;log10&quot;, &quot;identity&quot;)) {
+  
+  user &lt;- user[1]
+  trans &lt;- match.arg(tolower(trimws(trans[1])), c(&quot;log10&quot;, &quot;identity&quot;))
+  
+  user_info &lt;- lookup_users(user)
+  
+  user_followers &lt;- get_followers(user_info$user_id)
+  uf_details &lt;- lookup_users(user_followers$user_id)
+  
+  primary_influence &lt;- scales::comma(sum(c(uf_details$followers_count, user_info$followers_count)))
+  
+   filter(uf_details, followers_count &gt; 0) %&gt;% 
+    ggplot(aes(followers_count)) +
+    geom_density(aes(y=..count..), color=&quot;lightslategray&quot;, fill=&quot;lightslategray&quot;,
+                 alpha=2/3, size=1) +
+    scale_x_continuous(expand=c(0,0), trans=&quot;log10&quot;, labels=scales::comma) +
+    labs(
+      x=&quot;Number of Followers of Followers (log scale)&quot;, 
+      y=&quot;Number of Followers&quot;,
+      title=sprintf(&quot;Follower chain distribution of %s (@%s)&quot;, user_info$name, user_info$screen_name),
+      subtitle=sprintf(&quot;Follower count: %s; Primary influence/reach: %s&quot;, 
+                       scales::comma(user_info$followers_count),
+                       scales::comma(primary_influence))
+    ) +
+    theme_minimal(grid=&quot;XY&quot;) -&gt; gg
+  
+   print(gg)
+  
+  return(invisible(list(user_info=user_info, follower_details=uf_details)))
+  
+}</code></pre>
+<pre class="r"><code>influence_snapshot(&quot;juliasilge&quot;)</code></pre>
+<p>In this case, we can determine the “primary influence / reach” of Dr. Julia Silge, lead datascientist and text mining pioneer at stackoverflow at nearly 6M people.</p>
+<div class="figure">
+<img src="/img/16_js-1.png" />
+
 </div>
-<div id="content-analysis" class="section level2">
-<h2>Content Analysis</h2>
+<p>With the addition of other metrics and when broken down during specific time periods (e.g. to measure a campaign’s influence), this could be a powerful tool to determine influence, as it stands, it is easy to see how this amount of “influence” can be interpreted in many different ways.</p>
+</div>
+<div id="content-analysis---sentiment-analysis" class="section level2">
+<h2>Content Analysis - sentiment analysis</h2>
+<p>Content analysis of traditional and social media is a long-standing method for interpreting the details of media content itself, the meat and potatoes of what’s being said (rather than how many people said something). Traditional content analysis means having a human read and categorize certain types of media according to what is being said in the article. For example if there are positive or negative references to a program or organization, would be performing an analysis of the overall sentiment of a specific topic.</p>
+<p>Similarly, the content of socia media content can be analyze for sentiment. I’ve already went into this in a <a href="">small amount of detail</a>, and can explore the topic further now. By cross-referencing single words, two-word combinations (bi-gram), or multiple word combinations (n-gram) to specific words within the <a href="">lexicon</a>, an overall sentiment rating can be determined.</p>
 </div>

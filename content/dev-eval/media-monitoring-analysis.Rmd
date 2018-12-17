@@ -84,20 +84,67 @@ ggraph(rt_g, layout = 'linear', circular = TRUE) +
 ![](/img/graph_relationships.png){ width=200% }
 
 
-Lesson learned:  
 This gives us some idea of who are the most visible actors in the media set being analyzed, and opens the door for future engagement potential - if some names stand out as being active in certain topics, how can they be better engaged with to extend the client's reach?
 
 
 
-## Engagement
+## Engagement - Influence
 
-The level of engagement 
+Understanding the level of engagement certain content has is helpful in determining the overall effectiveness of social media pieces. One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers.
+
+Like many of the useful functions found in ```rtweet```, ```get_followers()```,  allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from [rud.is](https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html), and like he states should further integrate favourites and retweets for a more accurate measure. Using his "influence_snapshot" function, I can create a rapid measure of potential overall influence, by user:
+
+```{r, echo=FALSE}
+influence_snapshot <- function(user, trans=c("log10", "identity")) {
+  
+  user <- user[1]
+  trans <- match.arg(tolower(trimws(trans[1])), c("log10", "identity"))
+  
+  user_info <- lookup_users(user)
+  
+  user_followers <- get_followers(user_info$user_id)
+  uf_details <- lookup_users(user_followers$user_id)
+  
+  primary_influence <- scales::comma(sum(c(uf_details$followers_count, user_info$followers_count)))
+  
+   filter(uf_details, followers_count > 0) %>% 
+    ggplot(aes(followers_count)) +
+    geom_density(aes(y=..count..), color="lightslategray", fill="lightslategray",
+                 alpha=2/3, size=1) +
+    scale_x_continuous(expand=c(0,0), trans="log10", labels=scales::comma) +
+    scale_y_comma() +
+    labs(
+      x="Number of Followers of Followers (log scale)", 
+      y="Number of Followers",
+      title=sprintf("Follower chain distribution of %s (@%s)", user_info$name, user_info$screen_name),
+      subtitle=sprintf("Follower count: %s; Primary influence/reach: %s", 
+                       scales::comma(user_info$followers_count),
+                       scales::comma(primary_influence))
+    ) +
+    theme_minimal(grid="XY") -> gg
+  
+   print(gg)
+  
+  return(invisible(list(user_info=user_info, follower_details=uf_details)))
+  
+}
+  
+
+```
+
+```{r}
+influence_snapshot("UNICEF")
+
+```
+
+With the addition of other metrics and when broken down during specific time periods (e.g. to measure a campaign's influence), this could be a powerful tool to determine influence.
 
 
+## Content Analysis - sentiment analysis
 
-## Content Analysis
+Content analysis of traditional and social media is a long-standing method for interpreting the details of media content itself, the meat and potatoes of what's being said (rather than how many people said something). Traditional content analysis means having a human read and categorize certain types of media according to what is being said in the article. For example if there are positive or negative references to a program or organization, would be performing an analysis of the overall sentiment of a specific topic. 
 
-
+Similarly, the content of socia media content can be analyze for sentiment. I've already went into this in a [small amount of detail](), and can explore the topic further now. By cross-referencing single words, two-word combinations (bi-gram), or multiple word combinations (n-gram) to specific words within the [ lexicon](), an overall sentiment rating can be determined. 
 
 
 

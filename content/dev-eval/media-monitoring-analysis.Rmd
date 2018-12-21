@@ -4,7 +4,6 @@ author: "Corey Pembleton"
 date: '2018-12-15'
 output: html_document
 slug: media-monitoring-analysis-using-r
-draft: true
 ---
 
 ```{r setup, include=FALSE}
@@ -17,25 +16,20 @@ As a consultant, I have to wear many different hats. Some days I'm munging a por
 
 A client with a well-established media presence wanted a "traditional and social media analysis" to understand the reach and impact of their program. We helped with the analysis and details, but they ended hiring a specialist on the subject to collect the data, give us the stats, etc. I had a feeling that with a bit of looking around, I could pull of a similar piece of work.    
 
-In general there are a few things people commonly want out of a media monitoring analysis: Reach (how many are seeing your content), engagement (who are your followers?), and Content analysis (what does the content say). 
+In general there are a few things people commonly want out of a media monitoring analysis: **Reach** (how many are seeing your content), **Engagement** (who are your followers?), and **Content analysis** ([covered here]()). 
 
-I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). For no reason in particular, this post will feature images and gifs from Doctor Who.  
-
-
-![](https://media.giphy.com/media/CP1AxXkLuUdFu/giphy.gif){ width=150% }
-
+I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). 
 
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(rtweet)
-library(tidygraph)
 library(ggraph)
 library(igraph)
 library(scales)
 ```
 
 ## Reach
-How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, it goes like this:
+How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, collecting tweets is an easy process either by user or topic:
 
 ```{r, cache=TRUE}
 tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
@@ -43,8 +37,10 @@ tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
 
 ```
 
+Here, we can visualize the 1500 tweets that include the hashtag "COP24" in 30 minute intervals using the ```ts_plot()``` function for plotting timelines:
+
 ```{r, echo = FALSE}
-ts_plot(tweets, "15 minutes") +
+ts_plot(tweets, "30 minutes") +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold")) +
   labs(
@@ -55,22 +51,24 @@ ts_plot(tweets, "15 minutes") +
   )
 ```
 
-Understanding tweet "reach" can be accompanied by understanding the relationship between who is "retweeting" the same tweets. Using the ```ggraph``` package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using ```igraph```.
-```{r}
-filter(tweets, retweet_count > 0) %>% 
+Understanding tweet "reach" can be accompanied by understanding the relationship between who is "retweeting" the same tweets. Using the ```ggraph``` package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using ```igraph```.  
+```{r, eval=FALSE}
+
+graph <- filter(tweets, retweet_count > 0) %>% 
   select(screen_name, mentions_screen_name) %>%
   unnest(mentions_screen_name) %>% 
   filter(!is.na(mentions_screen_name)) %>% 
-  igraph::graph_from_data_frame() -> rt_g
+  igraph::graph_from_data_frame()
 
 #clean up the names, and only use the names with X amount of retweets
-V(rt_g)$node_label <- unname(ifelse(degree(rt_g)[V(rt_g)] > 10, names(V(rt_g)), "")) 
-V(rt_g)$node_size <- unname(ifelse(degree(rt_g)[V(rt_g)] > 10, degree(rt_g), 0)) 
+V(graph)$node_label <- unname(ifelse(degree(graph)[V(graph)] > 10, names(V(graph)), "")) 
+V(graph)$node_size <- unname(ifelse(degree(graph)[V(graph)] > 10, degree(graph), 0)) 
 ```
 
 With a resulting graphical representation showing the users who have been most commonly re-tweeted (remembering that this is for a small set of tweets only, changing the size of the tweet collection will drastically change the results).
+
 ```{r, echo = TRUE,   eval=FALSE}
-ggraph(rt_g, layout = 'linear', circular = TRUE) + 
+ggraph(igraph, layout = 'linear', circular = TRUE) + 
   geom_edge_arc(edge_width=0.125, aes(alpha=..index..)) +
   geom_node_label(aes(label=node_label, size=node_size),
                   label.size=0, fill="#ffffff66", segment.colour="springgreen",
@@ -91,69 +89,82 @@ This gives us some idea of who are the most visible actors in the media set bein
 
 ## Engagement - Influence
 
-Understanding the level of engagement certain content has is helpful in determining the overall effectiveness of social media pieces. One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers.
+One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers.
 
-Like many of the useful functions found in ```rtweet```, ```get_followers()```,  allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from [rud.is](https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html), and like he states should further integrate favourites and retweets for a more accurate measure. Using his "influence_snapshot" function, I can create a rapid measure of potential overall influence, by user:
+Like many of the useful functions found in ```rtweet```, ```get_followers()```,  allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from [rud.is](https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html), and like he states should further integrate favourites and retweets for a more accurate measure. Reusing the "influence_snapshot" function, I can create a rapid measure of potential overall influence, by user:
 
-```{r, echo=TRUE, eval = FALSE}
-influence_snapshot <- function(user, trans=c("log10", "identity")) {
-  
+```{r, echo=TRUE, eval = TRUE}
+influence_snapshot <- function(user, trans = c("log10", "identity")){
   user <- user[1]
   trans <- match.arg(tolower(trimws(trans[1])), c("log10", "identity"))
   
   user_info <- lookup_users(user)
   
   user_followers <- get_followers(user_info$user_id)
+  
   uf_details <- lookup_users(user_followers$user_id)
   
   primary_influence <- scales::comma(sum(c(uf_details$followers_count, user_info$followers_count)))
   
-   filter(uf_details, followers_count > 0) %>% 
+    plot <- 
+      filter(uf_details, followers_count > 0) %>% 
     ggplot(aes(followers_count)) +
-    geom_density(aes(y=..count..), color="lightslategray", fill="lightslategray",
-                 alpha=2/3, size=1) +
-    scale_x_continuous(expand=c(0,0), trans="log10", labels=scales::comma) +
-    labs(
-      x="Number of Followers of Followers (log scale)", 
-      y="Number of Followers",
-      title=sprintf("Follower chain distribution of %s (@%s)", user_info$name, user_info$screen_name),
+    geom_density(aes(y = ..count..), color = "lightslategray", fill = "lightslategray",
+                 alpha = .66, size = 1 ) +
+    theme_minimal() +
+    scale_x_continuous(expand = c(0,0), trans = "log10", labels = scales::comma, limits = c(1, 10000000)) +
+    scale_y_continuous(labels = scales::comma) +
+  labs(
+      x = "Number of Followers of Followers (log scale)", 
+      y = "Number of Followers",
+      title = sprintf("Follower chain distribution of %s (@%s)", user_info$name, user_info$screen_name),
       subtitle=sprintf("Follower count: %s; Primary influence/reach: %s", 
                        scales::comma(user_info$followers_count),
                        scales::comma(primary_influence))
     ) +
-    theme_minimal(grid="XY") -> gg
+    theme(axis.title.x = element_text(hjust = 1, size = 8, face = "bold"))
+    
   
-   print(gg)
+  print(plot)
   
   return(invisible(list(user_info=user_info, follower_details=uf_details)))
-  
 }
   
+```
+
+
+Which does two things: 1) it collects the amount of "followers of followers" and 2) it produces a density graph with the results:
+```{r, fig.height= 4, fig.width=7}
+influence_snapshot("coreypembleton")
 
 ```
 
-```{r, cache = TRUE, eval=FALSE}
-influence_snapshot("juliasilge")
+Or, looking at an account with far more followers than my own modest following:
+
+```{r, fig.height= 4, fig.width=7}
+
+influence_snapshot("hadleywickham")
 
 ```
 
-In this case, we can determine the "primary influence / reach" of Dr. Julia Silge, lead datascientist and text mining pioneer at stackoverflow at nearly 6M people. 
-
-![](/img/16_js-1.png)
+This "influence snapshot" is limited in what meaning can be extracted. For targeted campaigns, more accurate counts of actual influence can be derived based upon interactions, and what level of reach those interactions have.
 
 
-With the addition of other metrics and when broken down during specific time periods (e.g. to measure a campaign's influence), this could be a powerful tool to determine influence, as it stands, it is easy to see how this amount of "influence" can be interpreted in many different ways.
+## Qualitative Content Analysis 
 
+Qualitative Content analysis, a well-established topic in media analysis, is a means of studying people's experiences of those receiving and creating media messages (1). Historically this type of analysis is completed by ethnographers and researchers reviewing, coding and processing media content as a means of gaining greater understanding into its meaning, such as the senitment of the text. Being such a foundational topic, I continue the discussion further [here](). 
 
-## Content Analysis - sentiment analysis
+## Lessons Learned
 
-Content analysis of traditional and social media is a long-standing method for interpreting the details of media content itself, the meat and potatoes of what's being said (rather than how many people said something). Traditional content analysis means having a human read and categorize certain types of media according to what is being said in the article. For example if there are positive or negative references to a program or organization, would be performing an analysis of the overall sentiment of a specific topic. 
-
-Similarly, the content of socia media content can be analyze for sentiment. I've already went into this in a [small amount of detail](), and can explore the topic further now. By cross-referencing single words, two-word combinations (bi-gram), or multiple word combinations (n-gram) to specific words within the [ lexicon](), an overall sentiment rating can be determined. 
+Media content analysis is fundamental for organizations that want to understand the impact of their communications efforts beyond the statistics provided by the platforms themselves. I believe now that by focusing on several main components, such as reach, influence, and content analyses, there can be some very useful insights obtained. Every media analysis cannot contain everything, so anytime it is performed, the clients' needs should be specifically targeted and met.
 
 
 
 
+
+
+
+(1) D.E. Polkinghorne. *The Oxford Handbook of Media Psychology*. Edited by Karen E. Dill
 
 
 

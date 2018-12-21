@@ -14,10 +14,15 @@ As a consultant, I have to wear many different hats. Some days I'm munging a por
 
 A client with a well-established media presence wanted a "traditional and social media analysis" to understand the reach and impact of their program. We helped with the analysis and details, but they ended hiring a specialist on the subject to collect the data, give us the stats, etc. I had a feeling that with a bit of looking around, I could pull of a similar piece of work.    
 
+<<<<<<< HEAD
 ## Media monitoring: the main factors to consider
 In general there are a few things people commonly want out of a media monitoring analysis: **Reach** (how many are seeing your content), **Engagement** (who are your followers?), and **Content analysis** ([covered here]()). 
 
 ### Tools used
+=======
+In general there are a few things people commonly want out of a media monitoring analysis: **Reach** (how many are seeing your content), **Engagement** (who are your followers?), and **Content analysis** ([covered here]()). 
+
+>>>>>>> 659c8fe74a5b8dec0962bf1d99eb10ac31bbdd95
 I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). 
 
 ```{r, warning=FALSE, message=FALSE}
@@ -88,7 +93,11 @@ This gives us some idea of who are the most visible actors in the media set bein
 
 ## Engagement - Influence
 
+<<<<<<< HEAD
 One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers. For a full discussion on influence analysis approaches using social media, see [Meng Han,Yingshu Li ](http://aimsciences.org/article/doi/10.3934/mfc.2018010)
+=======
+One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers.
+>>>>>>> 659c8fe74a5b8dec0962bf1d99eb10ac31bbdd95
 
 Like many of the useful functions found in ```rtweet```, ```get_followers()```,  allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from [rud.is](https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html), and like he states should further integrate favourites and retweets for a more accurate measure. Reusing the "influence_snapshot" function, I can create a rapid measure of potential overall influence, by user:
 
@@ -151,7 +160,11 @@ This "influence snapshot" is limited in what meaning can be extracted. For targe
 
 ## Qualitative Content Analysis 
 
+<<<<<<< HEAD
 Qualitative Content analysis, a well-established topic in media analysis, is a means of studying people's experiences of those receiving and creating media messages (1). Historically this type of analysis is completed by ethnographers and researchers reviewing, coding and processing media content as a means of gaining greater understanding into its meaning, such as the senitment of the text. Being such a foundational topic, I continue the discussion further [here](http://coreypembleton.netlify.com/dev-eval/media-monitoring-analysis-content-analysis), and the nuances around influence and sentiment.
+=======
+Qualitative Content analysis, a well-established topic in media analysis, is a means of studying people's experiences of those receiving and creating media messages (1). Historically this type of analysis is completed by ethnographers and researchers reviewing, coding and processing media content as a means of gaining greater understanding into its meaning, such as the senitment of the text. Being such a foundational topic, I continue the discussion further [here](). 
+>>>>>>> 659c8fe74a5b8dec0962bf1d99eb10ac31bbdd95
 
 ## Lessons Learned
 

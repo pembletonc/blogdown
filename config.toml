@@ -80,5 +80,5 @@ enableEmoji = true
     
 [[menu.main]]
     name = "Tutorials"
-    url = "/page/tutorials"
+    url = "/page/tutorials/"
     weight = 6

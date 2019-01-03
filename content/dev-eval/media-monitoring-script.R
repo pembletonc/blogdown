@@ -62,23 +62,26 @@ influence_snapshot <- function(user, trans = c("log10", "identity")){
   
   primary_influence <- scales::comma(sum(c(uf_details$followers_count, user_info$followers_count)))
   
-  filter(uf_details, followers_count > 0) %>% 
+    plot <- 
+      filter(uf_details, followers_count > 0) %>% 
     ggplot(aes(followers_count)) +
     geom_density(aes(y = ..count..), color = "lightslategray", fill = "lightslategray",
-                 alpha = .66, size = 1) +
-    scale_x_continuous(expand = c(0,0), trans = "log10", labels = scales::comma) +
-    scale_y_comma()+
-    labs(
-      x="Number of Followers of Followers (log scale)", 
-      y="Number of Followers",
-      title=sprintf("Follower chain distribution of %s (@%s)", user_info$name, user_info$screen_name),
+                 alpha = .66, size = 1 ) +
+    theme_minimal() +
+    scale_x_continuous(expand = c(0,0), trans = "log10", labels = scales::comma, limits = c(1, 10000000)) +
+    scale_y_continuous(labels = scales::comma) +
+  labs(
+      x = "Number of Followers of Followers (log scale)", 
+      y = "Number of Followers",
+      title = sprintf("Follower chain distribution of %s (@%s)", user_info$name, user_info$screen_name),
       subtitle=sprintf("Follower count: %s; Primary influence/reach: %s", 
                        scales::comma(user_info$followers_count),
                        scales::comma(primary_influence))
     ) +
-    theme_ipsum_rc(grid="XY") -> gg
+    theme(axis.title.x = element_text(hjust = 0, size = .5, face = "bold"))
+    
   
-  print(gg)
+  print(plot)
   
   return(invisible(list(user_info=user_info, follower_details=uf_details)))
   
@@ -87,8 +90,7 @@ influence_snapshot <- function(user, trans = c("log10", "identity")){
 
 influence_snapshot("coreypembleton")
 
-
-
+#ggsave("testsize.png", plot = last_plot(), width = 10, height = 5, dpi = 500)
 
 
 

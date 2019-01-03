@@ -141,19 +141,17 @@ influence_snapshot <- function(user, trans = c("log10", "identity")){
 
 
 Which does two things: 1) it collects the amount of "followers of followers" and 2) it produces a density graph with the results:
-```{r, fig.height= 4, fig.width=7, eval=FALSE}
+```{r, fig.height= 4, fig.width=7, eval=TRUE}
 influence_snapshot("coreypembleton")
 
 ```
-
 Or, looking at an account with far more followers than my own modest following:
 
-```{r, fig.height= 4, fig.width=7, eval=FALSE}
+```{r, fig.height= 4, fig.width=7, eval=TRUE}
 
 influence_snapshot("hadleywickham")
 
 ```
-
 This "influence snapshot" is limited in what meaning can be extracted. For targeted campaigns, more accurate counts of actual influence can be derived based upon interactions, and what level of reach those interactions have.
 
 

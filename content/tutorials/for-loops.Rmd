@@ -1,0 +1,23 @@
+---
+title: "For, While, and ifelse Loops"
+author: "Corey Pembleton"
+date: '2019-01-02'
+output: html_document
+draft: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## if and ifelse
+
+
+## while
+
+
+## for
+
+
+
+

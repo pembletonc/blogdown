@@ -1,8 +1,8 @@
-baseurl = "/"
+baseurl = "https://coreypembleton.netlify.com/"
 title = "Data Break"
 theme = "ghostwriter"
 languageCode = "en-us"
-disqusShortname = "XXX"
+disqusShortname = "https-coreypembleton-netlify-com"
 googleAnalytics = "UA-39239614-2"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 publishdir = "public"

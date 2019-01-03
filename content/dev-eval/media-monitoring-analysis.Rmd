@@ -55,6 +55,8 @@ ts_plot(tweets, "6 hours") +
   )
 ```
 
+![](/img/mtl-tweets.png)
+
 Understanding tweet "reach" can be accompanied by understanding the relationship between who is "retweeting" the same tweets. Using the ```ggraph``` package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using ```igraph```.  
 ```{r}
 

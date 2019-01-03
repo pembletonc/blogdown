@@ -78,3 +78,7 @@ enableEmoji = true
     url = "/page/cv/"
     weight = 5
     
+[[menu.main]]
+    name = "Tutorials"
+    url = "/page/tutorials"
+    weight = 6

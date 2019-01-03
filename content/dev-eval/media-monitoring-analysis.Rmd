@@ -12,18 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 As a consultant, I have to wear many different hats. Some days I'm munging a portfolio, another leading a focus group, and on another catching a flight to Kathmandu to participate in a workshop. It's the beauty of my job, and keeps things spicy. Not doing the same thing all the time means I'm learning constantly, which is what this story is about.  
 
-A client with a well-established media presence wanted a "traditional and social media analysis" to understand the reach and impact of their program. We helped with the analysis and details, but they ended hiring a specialist on the subject to collect the data, give us the stats, etc. I had a feeling that with a bit of looking around, I could pull of a similar piece of work.    
+Clients often want "traditional and social media analysis" performed to understand the reach and impact of their programming, a specific campaign, a targeted advocacy programme, or a variety of other reasons. Traditionally for evaluators this would mean reading over a list of shared documents or media files, but in the 21st century media analysis almost has to go a step further. What that next step looks like can be very wide ranging, but a good start is in gauging social media impact and influence, which is what this post explores.
 
-<<<<<<< HEAD
 ## Media monitoring: the main factors to consider
-In general there are a few things people commonly want out of a media monitoring analysis: **Reach** (how many are seeing your content), **Engagement** (who are your followers?), and **Content analysis** ([covered here]()). 
+In general there are a few components clients commonly want answered out of a media monitoring analysis: **Reach** (how many people are seeing your content?), **Engagement** (who is engaging with the content?), and **Content analysis** (what is the content and sentiment of the engagement like?). If these main questions can be accurately answered, you'll be more or less on track to understand what their media investments have achieved.
 
 ### Tools used
-=======
-In general there are a few things people commonly want out of a media monitoring analysis: **Reach** (how many are seeing your content), **Engagement** (who are your followers?), and **Content analysis** ([covered here]()). 
 
->>>>>>> 659c8fe74a5b8dec0962bf1d99eb10ac31bbdd95
-I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other brilliant programmers doing fun-useful things with the package(like [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). 
+I'll use the ```rtweet``` package developed by [M. Kearny](https://mikewk.com/) for this post, and take some ideas from helpful sources on the topic and other programmers doing fun-useful things with the package, such as [here](https://rud.is/books/21-recipes/) and [here](http://rpubs.com/ben_bellman/rtweet_tidygraph). 
 
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -34,30 +30,33 @@ library(scales)
 ```
 
 ## Reach
-How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, collecting tweets is an easy process either by user or topic:
+How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, collecting tweets is an easy process either by user or topic, for example here collecting tweets for two hashtags:
 
 ```{r, cache=TRUE}
-tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
-                    retryonratelimit = FALSE)
+tweets <- search_tweets("#montreal", n = 1500, include_rts = FALSE,
+                    retryonratelimit = FALSE )
+
+#tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
+#                    retryonratelimit = FALSE, )
 
 ```
 
 Here, we can visualize the 1500 tweets that include the hashtag "COP24" in 30 minute intervals using the ```ts_plot()``` function for plotting timelines:
 
 ```{r, echo = FALSE}
-ts_plot(tweets, "30 minutes") +
+ts_plot(tweets, "6 hours") +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold")) +
   labs(
     x = NULL, y = NULL,
-    title = "Frequency of #COP24 Twitter statuses",
+    title = "Frequency of #montreal Twitter statuses",
     subtitle = "Twitter status (tweet) counts aggregated using 15-minute intervals",
     caption = "\nSource: Data collected from Twitter's REST API via rtweet"
   )
 ```
 
 Understanding tweet "reach" can be accompanied by understanding the relationship between who is "retweeting" the same tweets. Using the ```ggraph``` package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using ```igraph```.  
-```{r, eval=FALSE}
+```{r}
 
 graph <- filter(tweets, retweet_count > 0) %>% 
   select(screen_name, mentions_screen_name) %>%
@@ -73,7 +72,7 @@ V(graph)$node_size <- unname(ifelse(degree(graph)[V(graph)] > 10, degree(graph),
 With a resulting graphical representation showing the users who have been most commonly re-tweeted (remembering that this is for a small set of tweets only, changing the size of the tweet collection will drastically change the results).
 
 ```{r, echo = TRUE,   eval=FALSE}
-ggraph(igraph, layout = 'linear', circular = TRUE) + 
+ggraph(graph, layout = 'linear', circular = TRUE) + 
   geom_edge_arc(edge_width=0.125, aes(alpha=..index..)) +
   geom_node_label(aes(label=node_label, size=node_size),
                   label.size=0, fill="#ffffff66", segment.colour="springgreen",
@@ -93,11 +92,9 @@ This gives us some idea of who are the most visible actors in the media set bein
 
 ## Engagement - Influence
 
-<<<<<<< HEAD
 One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers. For a full discussion on influence analysis approaches using social media, see [Meng Han,Yingshu Li ](http://aimsciences.org/article/doi/10.3934/mfc.2018010)
-=======
+
 One way to determine engagement is through an interpretation of the level of influence single tweets, campaigns, or accounts have based on the interaction by followers.
->>>>>>> 659c8fe74a5b8dec0962bf1d99eb10ac31bbdd95
 
 Like many of the useful functions found in ```rtweet```, ```get_followers()```,  allows me to count the followers of followers, a pseudo-primary influence measure. This approach is a quick take from [rud.is](https://rud.is/books/21-recipes/crawling-followers-to-approximate-primary-influence.html), and like he states should further integrate favourites and retweets for a more accurate measure. Reusing the "influence_snapshot" function, I can create a rapid measure of potential overall influence, by user:
 
@@ -142,14 +139,14 @@ influence_snapshot <- function(user, trans = c("log10", "identity")){
 
 
 Which does two things: 1) it collects the amount of "followers of followers" and 2) it produces a density graph with the results:
-```{r, fig.height= 4, fig.width=7}
+```{r, fig.height= 4, fig.width=7, eval=FALSE}
 influence_snapshot("coreypembleton")
 
 ```
 
 Or, looking at an account with far more followers than my own modest following:
 
-```{r, fig.height= 4, fig.width=7}
+```{r, fig.height= 4, fig.width=7, eval=FALSE}
 
 influence_snapshot("hadleywickham")
 
@@ -160,11 +157,7 @@ This "influence snapshot" is limited in what meaning can be extracted. For targe
 
 ## Qualitative Content Analysis 
 
-<<<<<<< HEAD
-Qualitative Content analysis, a well-established topic in media analysis, is a means of studying people's experiences of those receiving and creating media messages (1). Historically this type of analysis is completed by ethnographers and researchers reviewing, coding and processing media content as a means of gaining greater understanding into its meaning, such as the senitment of the text. Being such a foundational topic, I continue the discussion further [here](http://coreypembleton.netlify.com/dev-eval/media-monitoring-analysis-content-analysis), and the nuances around influence and sentiment.
-=======
-Qualitative Content analysis, a well-established topic in media analysis, is a means of studying people's experiences of those receiving and creating media messages (1). Historically this type of analysis is completed by ethnographers and researchers reviewing, coding and processing media content as a means of gaining greater understanding into its meaning, such as the senitment of the text. Being such a foundational topic, I continue the discussion further [here](). 
->>>>>>> 659c8fe74a5b8dec0962bf1d99eb10ac31bbdd95
+Qualitative Content analysis, a well-established topic in media analysis, is a means of studying the experiences of those receiving and creating media messages (1). Historically, this type of analysis is completed by ethnographers and researchers reviewing, coding and processing media content as a means of gaining greater understanding into its meaning, such as the senitment of the text. Being such a foundational topic, I continue the discussion further [here](http://coreypembleton.netlify.com/dev-eval/media-monitoring-analysis-content-analysis) in greater detail.
 
 ## Lessons Learned
 

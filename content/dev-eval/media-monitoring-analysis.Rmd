@@ -33,18 +33,17 @@ library(scales)
 How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, collecting tweets is an easy process either by user or topic, for example here collecting tweets for two hashtags:
 
 ```{r, cache=TRUE}
-tweets <- search_tweets("#montreal", n = 1500, include_rts = FALSE,
-                    retryonratelimit = FALSE )
 
-#tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
-#                    retryonratelimit = FALSE, )
+
+tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
+                   retryonratelimit = FALSE, )
 
 ```
 
 Here, we can visualize the 1500 tweets that include the hashtag "COP24" in 30 minute intervals using the ```ts_plot()``` function for plotting timelines:
 
 ```{r, echo = FALSE}
-ts_plot(tweets, "6 hours") +
+ts_plot(tweets, "30 minutes") +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold")) +
   labs(
@@ -55,7 +54,6 @@ ts_plot(tweets, "6 hours") +
   )
 ```
 
-![](/img/mtl-tweets.png)
 
 Understanding tweet "reach" can be accompanied by understanding the relationship between who is "retweeting" the same tweets. Using the ```ggraph``` package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using ```igraph```.  
 ```{r}

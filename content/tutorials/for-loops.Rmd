@@ -1,16 +1,23 @@
 ---
 title: "For, While, and ifelse Loops"
+subtitle: "exploring"
 author: "Corey Pembleton"
-date: '2019-01-02'
+date: "2019-01-02"
+hidedate: false
 output: html_document
 draft: true
+tags: ["r", "tutorials", "programming"]
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+tutorial::go_interactive()
+
 ```
 
 ## if and ifelse
+```{r}
+a <- 2
+```
 
 
 ## while

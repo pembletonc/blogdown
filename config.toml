@@ -40,7 +40,6 @@ enableEmoji = true
     shareFacebook = false
     shareGooglePlus = false
     shareLinkedIn = true
-    dateform = "Jan 2, 2006"
     dateformfull = "Mon Jan 2 2006 15:04:05 MST"
     copyright = "Copyright © 2019 Corey Pembleton"
     
@@ -51,6 +50,12 @@ enableEmoji = true
     
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
+    
+[params.settings]
+    dateFormat = "2006, Jan, 02"
+    listDateFormat = "2006, Jan, 02"
+    showReadingTime = true
+
 
 
 [Permalinks]

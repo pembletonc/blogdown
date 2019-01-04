@@ -2,7 +2,7 @@
 title: "Media Monitoring Analysis in R: An Overview"
 author: "Corey Pembleton"
 date: '2018-12-15'
-output: html_document
+output: html_page
 slug: media-monitoring-analysis-using-r
 ---
 
@@ -33,18 +33,17 @@ library(scales)
 How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the ```rtweet``` vignette, collecting tweets is an easy process either by user or topic, for example here collecting tweets for two hashtags:
 
 ```{r, cache=TRUE}
-tweets <- search_tweets("#montreal", n = 1500, include_rts = FALSE,
-                    retryonratelimit = FALSE )
 
-#tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
-#                    retryonratelimit = FALSE, )
+
+tweets <- search_tweets("#COP24", n = 1500, include_rts = FALSE,
+                   retryonratelimit = FALSE, )
 
 ```
 
 Here, we can visualize the 1500 tweets that include the hashtag "COP24" in 30 minute intervals using the ```ts_plot()``` function for plotting timelines:
 
 ```{r, echo = FALSE}
-ts_plot(tweets, "6 hours") +
+ts_plot(tweets, "30 minutes") +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold")) +
   labs(
@@ -55,7 +54,6 @@ ts_plot(tweets, "6 hours") +
   )
 ```
 
-![](/img/mtl-tweets.png)
 
 Understanding tweet "reach" can be accompanied by understanding the relationship between who is "retweeting" the same tweets. Using the ```ggraph``` package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using ```igraph```.  
 ```{r}
@@ -141,19 +139,17 @@ influence_snapshot <- function(user, trans = c("log10", "identity")){
 
 
 Which does two things: 1) it collects the amount of "followers of followers" and 2) it produces a density graph with the results:
-```{r, fig.height= 4, fig.width=7, eval=FALSE}
+```{r, fig.height= 4, fig.width=7, eval=TRUE}
 influence_snapshot("coreypembleton")
 
 ```
-
 Or, looking at an account with far more followers than my own modest following:
 
-```{r, fig.height= 4, fig.width=7, eval=FALSE}
+```{r, fig.height= 4, fig.width=7, eval=TRUE}
 
 influence_snapshot("hadleywickham")
 
 ```
-
 This "influence snapshot" is limited in what meaning can be extracted. For targeted campaigns, more accurate counts of actual influence can be derived based upon interactions, and what level of reach those interactions have.
 
 

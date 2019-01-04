@@ -2,7 +2,7 @@
 title: "Media Monitoring Analysis in R: An Overview"
 author: "Corey Pembleton"
 date: '2018-12-15'
-output: html_document
+output: html_page
 slug: media-monitoring-analysis-using-r
 ---
 
@@ -26,18 +26,12 @@ library(scales)</code></pre>
 <div id="reach" class="section level2">
 <h2>Reach</h2>
 <p>How often someone tweets can be a simplistic determination of their reach, especially when considering the amount of followers they have. Following the <code>rtweet</code> vignette, collecting tweets is an easy process either by user or topic, for example here collecting tweets for two hashtags:</p>
-<pre class="r"><code>tweets &lt;- search_tweets(&quot;#montreal&quot;, n = 1500, include_rts = FALSE,
-                    retryonratelimit = FALSE )</code></pre>
+<pre class="r"><code>tweets &lt;- search_tweets(&quot;#COP24&quot;, n = 1500, include_rts = FALSE,
+                   retryonratelimit = FALSE, )</code></pre>
 <pre><code>## Searching for tweets...</code></pre>
 <pre><code>## Finished collecting tweets!</code></pre>
-<pre class="r"><code>#tweets &lt;- search_tweets(&quot;#COP24&quot;, n = 1500, include_rts = FALSE,
-#                    retryonratelimit = FALSE, )</code></pre>
 <p>Here, we can visualize the 1500 tweets that include the hashtag “COP24” in 30 minute intervals using the <code>ts_plot()</code> function for plotting timelines:</p>
 <p><img src="/dev-eval/media-monitoring-analysis_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<div class="figure">
-<img src="/img/mtl-tweets.png" />
-
-</div>
 <p>Understanding tweet “reach” can be accompanied by understanding the relationship between who is “retweeting” the same tweets. Using the <code>ggraph</code> package, the resultant collected tweets can be filtered and unnested according to retweets by screen name, and converted into a graph object using <code>igraph</code>.</p>
 <pre class="r"><code>graph &lt;- filter(tweets, retweet_count &gt; 0) %&gt;% 
   select(screen_name, mentions_screen_name) %&gt;%
@@ -107,9 +101,9 @@ V(graph)$node_size &lt;- unname(ifelse(degree(graph)[V(graph)] &gt; 10, degree(g
 }</code></pre>
 <p>Which does two things: 1) it collects the amount of “followers of followers” and 2) it produces a density graph with the results:</p>
 <pre class="r"><code>influence_snapshot(&quot;coreypembleton&quot;)</code></pre>
-<p>Or, looking at an account with far more followers than my own modest following:</p>
+<p><img src="/dev-eval/media-monitoring-analysis_files/figure-html/unnamed-chunk-7-1.png" width="672" /> Or, looking at an account with far more followers than my own modest following:</p>
 <pre class="r"><code>influence_snapshot(&quot;hadleywickham&quot;)</code></pre>
-<p>This “influence snapshot” is limited in what meaning can be extracted. For targeted campaigns, more accurate counts of actual influence can be derived based upon interactions, and what level of reach those interactions have.</p>
+<p><img src="/dev-eval/media-monitoring-analysis_files/figure-html/unnamed-chunk-8-1.png" width="672" /> This “influence snapshot” is limited in what meaning can be extracted. For targeted campaigns, more accurate counts of actual influence can be derived based upon interactions, and what level of reach those interactions have.</p>
 </div>
 <div id="qualitative-content-analysis" class="section level2">
 <h2>Qualitative Content Analysis</h2>
